@@ -16,9 +16,7 @@ import datetime
 
 
 parser = argparse.ArgumentParser(description='Running this script will issue whatever commands are presented to this script.  All commands are issued from configuration mode.')
-
 devices = parser.add_mutually_exclusive_group()
-
 devices.add_argument('-d', '--device', default='', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
 parser.add_argument('-p', '--password', help='user password')
 parser.add_argument('-u', '--username', default='admin', help='username (default: admin)')
@@ -38,13 +36,11 @@ except Exception as e:
 logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
 
 
-
-
-
 def main():
     urllib3.disable_warnings()
     for device in devices:
         device = Acos(device, username, password)
+
 
 class Acos(object):
     def __init__(self, device, username, password ):
@@ -59,7 +55,6 @@ class Acos(object):
         self.auth()
         self.get_configs()
         self.show_configs()
-
 
     def set_logging_env(self):
         """Set logging environment for the device"""
@@ -81,12 +76,10 @@ class Acos(object):
         elif verbose >= 2:
             self.logger.setLevel(logging.DEBUG)
 
-
         # set logging message in the following levels like so:
         # self.logger.error('this is an error')
         # self.logger.info('this is some info')
         # self.logger.debug('this is debug')
-
 
     def auth(self):
         """authenticates and retrives the auth token for the A10 device"""
