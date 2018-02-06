@@ -38,16 +38,20 @@ logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
 
 def main():
     urllib3.disable_warnings()
-    for device in devices:
-        device = Acos(device, username, password)
+    device = '192.168.0.152'
+    username = 'admin'
+    password = 'a10'
+    #for device in devices:
+    device = Acos(device, username, password)
 
 
 class Acos(object):
-    def __init__(self, device, username, password ):
+    def __init__(self, device='192.168.0.152', username='admin', password='a10' ):
         self.device = device
         self.username = username
         self.password = password
-        self.base_url = 'https://' + device + '/axapi/v3/'
+        #self.base_url = 'https://' + device + '/axapi/v3/'
+        self.base_url = 'http://' + device + '/axapi/v3/'
         self.headers = {'content-type': 'application/json'}
         self.run_config_with_def_all_parts = ''
         self.start_config_all_parts = ''
