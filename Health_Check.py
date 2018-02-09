@@ -18,8 +18,8 @@ import datetime
 
 parser = argparse.ArgumentParser(description='Running this script will issue whatever commands are presented to this script.  All commands are issued from configuration mode.')
 devices = parser.add_mutually_exclusive_group()
-devices.add_argument('-d', '--device', default='', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
-parser.add_argument('-p', '--password', help='user password')
+devices.add_argument('-d', '--device', default='192.168.17.10', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
+parser.add_argument('-p', '--password', default='a10', help='user password')
 parser.add_argument('-u', '--username', default='admin', help='username (default: admin)')
 parser.add_argument('-v', '--verbose', default=0, action='count', help='Enable verbose detail')
 
@@ -52,8 +52,9 @@ def main():
         if not device.vrrpa_status_active:
             device.parse_vrrpa_details()
 
-        #device.get_partition_list()
-        #device.iterate_partition_configs()
+       
+
+
 
 
 
@@ -176,16 +177,21 @@ class Acos(object):
         self.partition_list = json.loads(self.axapi_call('partition', 'GET').content, encoding=bytes)
         print(json.dumps(self.partition_list, indent=4, sort_keys=True))
 
-    def get_partition_config(self, partition):
-        """gets the configuration for a particular partition"""
-        partition_config = self.axapi_call('partition/' + partition + '/running-config', 'GET')
-        print(partition_config.content)
+    def change_parition(self, partition):
+        """changes the active partition"""
+        payload = {'active-partition': partition}
+        self.axapi_call('active-partition', 'POST', payload)
 
     def iterate_partition_configs(self):
         """iterates through each of the partitions for their configs"""
         for partition in self.partition_list['partition-list']:
             part_name = partition['a10-url'].split('/')[-1]
             self.get_partition_config(part_name)
+
+    def get_partition_config(self, partition):
+        """gets the configuration for a particular partition"""
+        partition_config = self.axapi_call('partition/' + partition + '/running-config', 'GET')
+        print(partition_config.content)
 
 if __name__ == '__main__':
     main()
