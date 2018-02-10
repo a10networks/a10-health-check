@@ -18,7 +18,7 @@ import datetime
 
 parser = argparse.ArgumentParser(description='Running this script will issue whatever commands are presented to this script.  All commands are issued from configuration mode.')
 devices = parser.add_mutually_exclusive_group()
-devices.add_argument('-d', '--device', default='192.168.17.10', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
+devices.add_argument('-d', '--device', default='10.0.1.222', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
 parser.add_argument('-p', '--password', default='a10', help='user password')
 parser.add_argument('-u', '--username', default='admin', help='username (default: admin)')
 parser.add_argument('-v', '--verbose', default=0, action='count', help='Enable verbose detail')
@@ -43,20 +43,31 @@ def main():
         device = Acos(device, username, password)
         device.set_logging_env()
         device.auth()
-        device.get_configs()
+        device.get_partition_list()
+
+        for partition in device.partitions:
+            device.change_parition(partition)
+            device.get_slb_servers(partition)
+            device.get_slb_service_groups(partition)
+            device.get_slb_virtual_servers(partition)
+
+            #need to generate a list of server names then iterate through them
+            #once for oper data and another for stat data
+
+            #need to generate a list of service-group names then iterate through them
+            #once for oper data and another for stat data
+
+            #need to generate a list of virtual-server names then iterate through them
+            #once for oper data and another for stat data
+
+        #device.get_configs()
 
         # needs to be flushed out
         # thought was, if VRRP-A isn't running skip the VRRP-A checks
         # maybe that gets moved/tabled for the parser script
-        device.get_vrrpa()
-        if not device.vrrpa_status_active:
-            device.parse_vrrpa_details()
-
-       
-
-
-
-
+        #device.get_vrrpa()
+        #if not device.vrrpa_status_active:
+        #    device.parse_vrrpa_details()
 
 class Acos(object):
     def __init__(self, device, username, password):
@@ -67,6 +78,7 @@ class Acos(object):
         self.headers = {'content-type': 'application/json'}
         self.run_config_with_def_all_parts = ''
         self.start_config_all_parts = ''
+        self.partitions = []
 
     def set_logging_env(self):
         """Set logging environment for the device"""
@@ -175,12 +187,52 @@ class Acos(object):
     def get_partition_list(self):
         """gets a list of all the partition names"""
         self.partition_list = json.loads(self.axapi_call('partition', 'GET').content, encoding=bytes)
-        print(json.dumps(self.partition_list, indent=4, sort_keys=True))
+
+        for partition in self.partition_list['partition-list']:
+            name = partition.get('partition-name')
+            self.partitions.append(name)
 
     def change_parition(self, partition):
         """changes the active partition"""
-        payload = {'active-partition': partition}
+        payload = {'active-partition': {'curr_part_name': partition}}
         self.axapi_call('active-partition', 'POST', payload)
+
+    def get_slb_servers(self, partition='shared'):
+        """gets a list of all slb servers"""
+
+        self.build_section_header('SLB SERVERS for partition ' + partition)
+
+        servers_list = self.axapi_call('slb/server', 'GET')
+        servers_list = servers_list.content.decode()
+        print(servers_list)
+
+    def get_slb_server_stats(self, server, partition='shared'):
+        """gets operational stats for a slb server"""
+
+        self.build_section_header('OPERATIONAL DATA for slb server ' + server)
+
+        slb_server_stats = self.axapi_call('slb/server/' + server + '/stats', 'GET')
+        slb_server_stats = slb_server_stats.content.decode()
+        print(slb_server_stats)
+
+    def get_slb_service_groups(self, partition='shared'):
+        """gets a list of all service-groups"""
+
+        self.build_section_header('SLB SERVICE_GROUP for partition ' + partition)
+
+        service_group_list = self.axapi_call('slb/service-group', 'GET')
+        service_group_list = service_group_list.content.decode()
+        print(service_group_list)
+
+    def get_slb_virtual_servers(self, partition='shared'):
+        """gets a list of all virtual-servers"""
+
+        self.build_section_header('SLB VIRTUAL-SERVERS for partition ' + partition)
+
+        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET')
+        virtual_server_list = virtual_server_list.content.decode()
+        print(virtual_server_list)
+
 
     def iterate_partition_configs(self):
         """iterates through each of the partitions for their configs"""
