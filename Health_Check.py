@@ -213,61 +213,66 @@ def main():
         # Application Services
         ##################################################################################
 
-        # iterate through each partition
-        for partition in device.partitions:
+        run_application_stats = False
+        if run_application_stats == False:
+            print("Skipping partitions.")
+        else:
 
-            # change to the first partition
-            device.change_partition(partition)
+            # iterate through each partition
+            for partition in device.partitions:
 
-            # instatiate empty list of servers
-            servers = []
-            # get json list of servers
-            slb_servers = device.get_slb_servers()
+                # change to the first partition
+                device.change_partition(partition)
 
-            # for each server in the list (if isn't empty) add the name as a value
-            if slb_servers:
-                for server in slb_servers['server-list']:
-                    servers.append(server['name'])
+                # instatiate empty list of servers
+                servers = []
+                # get json list of servers
+                slb_servers = device.get_slb_servers()
 
-                # for each named server print a header then the stat information
-                for server in servers:
-                    server_stats = device.get_slb_server_stats(server)
-                    device.build_section_header('Stats for SLB SERVER ' + server)
-                    print(server_stats)
+                # for each server in the list (if isn't empty) add the name as a value
+                if slb_servers:
+                    for server in slb_servers['server-list']:
+                        servers.append(server['name'])
 
-            # instatiate an empty list of service-groups
-            service_groups = []
-            # get the json list of service-groups
-            slb_service_groups = device.get_slb_service_groups()
+                    # for each named server print a header then the stat information
+                    for server in servers:
+                        server_stats = device.get_slb_server_stats(server)
+                        device.build_section_header('Stats for SLB SERVER ' + server)
+                        print(server_stats)
 
-            # for each service-group in the list (if it isn't empty) add the name as a value
-            if slb_service_groups:
-                for service_group in slb_service_groups['service-group-list']:
-                    service_groups.append(service_group['name'])
+                # instatiate an empty list of service-groups
+                service_groups = []
+                # get the json list of service-groups
+                slb_service_groups = device.get_slb_service_groups()
 
-                # for each named service-group print a header then the stat information
-                for service_group in service_groups:
-                    service_group_stats = device.get_slb_service_group_stats(service_group)
-                    device.build_section_header('Stats for SLB SERVICE-GROUP ' + service_group)
-                    print(service_group_stats)
+                # for each service-group in the list (if it isn't empty) add the name as a value
+                if slb_service_groups:
+                    for service_group in slb_service_groups['service-group-list']:
+                        service_groups.append(service_group['name'])
 
-            # instatiate an empty list of virtual-servers
-            virtual_servers = []
-            # get teh json list of virtual-servers
-            slb_virtual_servers = device.get_slb_virtual_servers()
+                    # for each named service-group print a header then the stat information
+                    for service_group in service_groups:
+                        service_group_stats = device.get_slb_service_group_stats(service_group)
+                        device.build_section_header('Stats for SLB SERVICE-GROUP ' + service_group)
+                        print(service_group_stats)
 
-            # for each virtual-server in the list (if it isn't empty) add the name as a value
-            if slb_virtual_servers:
-                for virtual_server in slb_virtual_servers['virtual-server-list']:
-                    virtual_servers.append(virtual_server['name'])
+                # instatiate an empty list of virtual-servers
+                virtual_servers = []
+                # get teh json list of virtual-servers
+                slb_virtual_servers = device.get_slb_virtual_servers()
 
-                # for each named virtual-server print a header then the stat information
-                for virtual_server in virtual_servers:
-                    virtual_server_stats = device.get_slb_virtual_server_stats(virtual_server)
-                    device.build_section_header('Stats for SLB VIRTUAL-SERVER ' + virtual_server)
-                    print(virtual_server_stats)
+                # for each virtual-server in the list (if it isn't empty) add the name as a value
+                if slb_virtual_servers:
+                    for virtual_server in slb_virtual_servers['virtual-server-list']:
+                        virtual_servers.append(virtual_server['name'])
 
-        device.change_partition('shared')
+                    # for each named virtual-server print a header then the stat information
+                    for virtual_server in virtual_servers:
+                        virtual_server_stats = device.get_slb_virtual_server_stats(virtual_server)
+                        device.build_section_header('Stats for SLB VIRTUAL-SERVER ' + virtual_server)
+                        print(virtual_server_stats)
+
+            device.change_partition('shared')
 
 
         ##################################################################################
