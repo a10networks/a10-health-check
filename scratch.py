@@ -12,7 +12,7 @@ Requires:
     - ACOS 4.0 or higher
 
 Revisions:
-    - 0.1 - initial script generation by A10 engineers: Brandon Marrow, Terry Jones
+    - 0.1 - initial script generation by A10 engineers: Brandon Marlow, Terry Jones
 
 '''
 #!/usr/bin/env python
@@ -528,8 +528,8 @@ class Acos(object):
         This section will run the following cmds for the security check
 
         show management
-	    show slb conn-rate-limit src-ip statistics
-	    show ip anomaly-drop statistics
+	show slb conn-rate-limit src-ip statistics
+	show ip anomaly-drop statistics
         '''
         return True
 
@@ -538,7 +538,7 @@ class Acos(object):
         This section will run the following cmds for the version check.
 
         show version
-	    show bootimage
+	show bootimage
         '''
 
 
