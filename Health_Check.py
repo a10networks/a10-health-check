@@ -215,7 +215,7 @@ def main():
 
         run_application_stats = False
         if run_application_stats == False:
-            print("Skipping partitions.")
+            print("Skipping appplication stats.")
         else:
 
             # iterate through each partition
@@ -290,7 +290,15 @@ def main():
         ##################################################################################
         # Version Check
         ##################################################################################
+        run_version_check = False
+        if run_version_check == False:
+            print("Skipping version check.")
+        else:
+            version = device.get_version()
+            bootimage = device.get_bootimage()
 
+            print(version)
+            print(bootimage)
 
 
         ##################################################################################
@@ -689,15 +697,17 @@ class Acos(object):
         '''
         return True
 
-    def version_check(self):
-        '''
-        This section will run the following cmds for the version check.
+    def get_version(self):
+        """gets the current version running"""
 
-        show version
-	    show bootimage
-        '''
-        return True
+        version = self.axapi_call('version/oper', 'GET').content.decode()
+        return version
 
+    def get_bootimage(self):
+        """get the bootimage configuration"""
+
+        bootimage = self.axapi_call('bootimage/oper', 'GET').content.decode()
+        return bootimage
 
 if __name__ == '__main__':
     main()
