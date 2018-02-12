@@ -285,7 +285,19 @@ def main():
         # Security Check
         ##################################################################################
 
+        run_security_check = False
+        if run_security_check == False:
+            print("Skipping security check.")
+        else:
 
+            management = device.get_management_services()
+            conn_limit_data = device.get_slb_conn_rate_limit_data()
+            ip_anomaly = device.get_ip_anomaly_drop()
+
+            print(management)
+            # if there is no conn_limit_data a blank line will print
+            print(conn_limit_data)
+            print(ip_anomaly)
 
         ##################################################################################
         # Version Check
@@ -687,15 +699,23 @@ class Acos(object):
         '''
         return True
 
-    def security_check(self):
-        '''
-        This section will run the following cmds for the security check
+    def get_management_services(self):
+        """gets the currently enabled management services"""
 
-        show management
-	    show slb conn-rate-limit src-ip statistics
-	    show ip anomaly-drop statistics
-        '''
-        return True
+        management_services = self.axapi_call('enable-management', 'GET').content.decode()
+        return management_services
+
+    def get_slb_conn_rate_limit_data(self):
+        """gets the results of 'show slb conn-rate-limit src-ip statistics"""
+
+        slb_conn_rate_limit_data = self.axapi_call('slb/common/conn-rate-limit', 'GET').content.decode()
+        return slb_conn_rate_limit_data
+
+    def get_ip_anomaly_drop(self):
+        """gets the results of any ip anomoly drops"""
+
+        ip_anomaly = self.axapi_call('ip/anomaly-drop/stats', 'GET').content.decode()
+        return ip_anomaly
 
     def get_version(self):
         """gets the current version running"""
