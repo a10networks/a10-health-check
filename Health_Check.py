@@ -22,7 +22,7 @@ __author__ = 'A10 Networks'
 
 import argparse
 import requests
-#from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError
 import json
 import urllib3
 import logging
@@ -44,6 +44,8 @@ try:
 
 except Exception as e:
     print(e)
+
+#verbose = 1
 
 # set the default logging format
 logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
@@ -235,6 +237,8 @@ def main():
         device.auth_logoff(token)
 
 # Class for making all device calls using AxAPI v3.0
+
+
 class Acos(object):
     def __init__(self, device, username, password):
         self.device = device
@@ -245,7 +249,6 @@ class Acos(object):
         self.run_config_with_def_all_parts = ''
         self.start_config_all_parts = ''
         self.run_json_config = ''
-
 
     def set_logging_env(self):
         """Set logging environment for the device"""
@@ -373,16 +376,6 @@ class Acos(object):
             print(partition,' partition response: ', set_partition.content)
             logging.debug('AxAPI changed to shared partition')
 
-    def set_shared_partition(self):
-        """Set AxAPI back to default (shared) partition)"""
-        try:
-            set_partition = self.axapi_call('shared', 'GET')
-        except:
-            logging.debug('Issue changing partition')
-        else:
-            print('shared partition response: ', set_partition.content)
-            logging.debug('AxAPI changed to shared partition')
-
     def get_vrrpa(self):
         """Return information on vrrp-a. Will run calls for:
         show vrrp-a
@@ -410,6 +403,92 @@ class Acos(object):
         print(vcs_stat.content)
 
         return self.vcs_images,self.vcs_stat
+
+    def get_slb_servers(self):
+        """gets a list of all slb servers"""
+
+        self.logger.debug('Entering get_slb_servers method')
+        servers_list = self.axapi_call('slb/server', 'GET')
+        servers_list = servers_list.content.decode()
+        self.logger.info(servers_list)
+        self.logger.debug('Exiting get_slb_servers method')
+        return servers_list
+
+    def get_slb_service_groups(self):
+        """gets a list of all service-groups"""
+
+        self.logger.debug('Entering get_slb_service_groups method')
+        service_group_list = self.axapi_call('slb/service-group', 'GET')
+        service_group_list = service_group_list.content.decode()
+        self.logger.info(service_group_list)
+        self.logger.debug('Exiting get_slb_service_groups method')
+        return service_group_list
+
+    def get_slb_virtual_servers(self):
+        """gets a list of all virtual-servers"""
+
+        self.logger.debug('Entering get_slb_virtual_servers method')
+        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET')
+        virtual_server_list = virtual_server_list.content.decode()
+        self.logger.info(virtual_server_list)
+        self.logger.debug('Exiting get_slb_virtual_servers method')
+        return virtual_server_list
+
+    def get_slb_server_stats(self, server):
+        """gets operational stats for a slb server"""
+
+        self.logger.debug('Entering get_slb_server_stats method')
+        slb_server_stats = self.axapi_call('slb/server/' + server + '/stats', 'GET')
+        slb_server_stats = slb_server_stats.content.decode()
+        self.logger.info(slb_server_stats)
+        self.logger.debug('Exiting get_slb_server_stats method')
+        return slb_server_stats
+
+    def get_slb_service_group_stats(self, service_group):
+        """get operational stats for a service-group"""
+
+        self.logger.debug('Entering get_slb_service_group_stats method')
+        service_group_stats = self.axapi_call('slb/service-group/' + service_group + '/stats', 'GET')
+        service_group_stats = service_group_stats.content.decode()
+        self.logger.info(service_group_stats)
+        self.logger.debug('Exiting get_slb_service_group_stats method')
+        return service_group_stats
+
+    def get_slb_virtual_server_stats(self, virtual_server):
+        """get operation stats for a virtual-server"""
+        self.logger.debug('Entering get_slb_service_group_stats method')
+        virtual_server_stats = self.axapi_call('slb/virtual-server/' + virtual_server + '/stats', 'GET')
+        virtual_server_stats = virtual_server_stats.content.decode()
+        self.logger.info(virtual_server_stats)
+        self.logger.debug('Exiting get_slb_service_group_stats method')
+        return virtual_server_stats
+
+    def get_slb_server_oper(self, server):
+        """gets operational status for a server"""
+        self.logger.debug('Entering get_slb_server_oper method')
+        server_oper = self.axapi_call('slb/server/' + server + '/oper', 'GET')
+        server_oper = server_oper.content.decode()
+        self.logger.info(server_oper)
+        self.logger.debug('Exiting get_slb_server_oper method')
+        return server_oper
+
+    def get_slb_service_group_oper(self, service_group):
+        """gets operational status for a service-group"""
+        self.logger.debug('Entering get_slb_service_group_oper method')
+        service_group_oper = self.axapi_call('slb/service-group/' + service_group + '/oper', 'GET')
+        service_group_oper = service_group_oper.content.decode()
+        self.logger.info(service_group_oper)
+        self.logger.debug('Exiting get_slb_service_group_oper method')
+        return service_group_oper
+
+    def get_slb_virtual_server_oper(self, virtual_server):
+        """gets operational status for a virtual_server"""
+        self.logger.debug('Entering get_slb_virtual_server_oper method')
+        virtual_server_oper = self.axapi_call('slb/virtual-server/' + virtual_server + '/oper', 'GET')
+        virtual_server_oper = virtual_server_oper.content.decode()
+        self.logger.info(virtual_server_oper)
+        self.logger.debug('Exiting get_slb_virtual_server_oper method')
+        return  virtual_server_oper
 
     def memory(self):
         '''
