@@ -218,6 +218,7 @@ def main():
             print("Skipping appplication stats.")
         else:
 
+            device.build_section_header('APPLICATION SERVICES CHECK')
             # iterate through each partition
             for partition in device.partitions:
 
@@ -278,7 +279,13 @@ def main():
         ##################################################################################
         # Monitoring Review
         ##################################################################################
-
+        run_monitoring_check = True
+        if run_monitoring_check == False:
+            print("Skipping monitoring check")
+        else:
+            device.build_section_header('MONITORING REVIEW')
+            logging_data = device.get_logging_data()
+            print(logging_data)
 
 
         ##################################################################################
@@ -289,7 +296,7 @@ def main():
         if run_security_check == False:
             print("Skipping security check.")
         else:
-
+            device.build_section_header('SECURITY CHECK')
             management = device.get_management_services()
             conn_limit_data = device.get_slb_conn_rate_limit_data()
             ip_anomaly = device.get_ip_anomaly_drop()
@@ -306,6 +313,7 @@ def main():
         if run_version_check == False:
             print("Skipping version check.")
         else:
+            device.build_section_header('VERSION/BOOTIMAGE CHECK')
             version = device.get_version()
             bootimage = device.get_bootimage()
 
@@ -691,13 +699,11 @@ class Acos(object):
         '''
         return True
 
-    def monitoring_info(self):
-        '''
-        This section will run the following cmds for monitoring.
+    def get_logging_data(self):
+        """gets the logs from the device"""
 
-        show logging
-        '''
-        return True
+        logging_data = self.axapi_call('syslog/oper', 'GET').content.decode()
+        return logging_data
 
     def get_management_services(self):
         """gets the currently enabled management services"""
