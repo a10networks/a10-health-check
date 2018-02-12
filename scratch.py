@@ -540,6 +540,20 @@ class Acos(object):
         show version
 	    show bootimage
         '''
+        return True
+
+# Not sure if needed as shouldn't get response errors, but could write in error handler just in case.
+class AxAPI_HTTP_RC_Exception(Exception):
+    def __init__(self, error_code, error_msg):
+        self.error_code = error_code
+        self.error_msg = error_msg
+        if response.status_code == 401:
+            raise MyException(401, "401 - Unauthorized")
+        elif response.status_code == 404:
+            raise MyException(404, "404 - URI Not Found")
+        elif response.status_code == 503:
+            raise MyException(503, "503 - Service Unavailable")
+    return True
 
 
 if __name__ == '__main__':
