@@ -22,7 +22,7 @@ __author__ = 'A10 Networks'
 
 import argparse
 import requests
-from requests.exceptions import HTTPError
+#from requests.exceptions import HTTPError
 import json
 import urllib3
 import logging
@@ -30,7 +30,7 @@ import datetime
 
 parser = argparse.ArgumentParser(description='Running this script will issue whatever commands are presented to this script.  All commands are issued from configuration mode.')
 devices = parser.add_mutually_exclusive_group()
-devices.add_argument('-d', '--device', default='192.168.0.152',help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
+devices.add_argument('-d', '--device', default='10.0.1.222', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
 parser.add_argument('-p', '--password', default='a10', help='user password')
 parser.add_argument('-u', '--username', default='admin', help='username (default: admin)')
 parser.add_argument('-v', '--verbose', default=0, action='count', help='Enable verbose detail')
@@ -47,6 +47,7 @@ except Exception as e:
 
 # set the default logging format
 logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
+
 
 def main():
     urllib3.disable_warnings()
@@ -239,11 +240,12 @@ class Acos(object):
         self.device = device
         self.username = username
         self.password = password
-        self.base_url = 'http://' + device + '/axapi/v3/'
+        self.base_url = 'https://' + device + '/axapi/v3/'
         self.headers = {'content-type': 'application/json'}
         self.run_config_with_def_all_parts = ''
         self.start_config_all_parts = ''
         self.run_json_config = ''
+
 
     def set_logging_env(self):
         """Set logging environment for the device"""
@@ -271,7 +273,7 @@ class Acos(object):
         # self.logger.debug('this is debug')
 
     def auth(self):
-        """authenticates and retrives the auth token for the A10 device"""
+        """authenticates and retrieves the auth token for the A10 device"""
 
         self.logger.debug('Entering the auth method')
         payload = {"credentials": {"username": self.username, "password": self.password}}
@@ -281,7 +283,7 @@ class Acos(object):
         self.logger.debug('Exiting the auth method')
         return auth_token
 
-    def auth_logoff(self,token):
+    def auth_logoff(self, token):
         """authenticates and retrives the auth token for the A10 device"""
 
         self.logger.debug('Logging Off to clean up session.')
@@ -317,6 +319,7 @@ class Acos(object):
         payload = {'CommandList': commands}
         r = self.axapi_call('clideploy', 'POST', payload)
         self.logger.debug('Exiting the clideploy method')
+
         return r
 
     def get_startup_configs(self):
@@ -344,22 +347,25 @@ class Acos(object):
 
     def get_partition_list(self):
         """gets a list of all the partition names"""
-        partitions =[]
-        self.partition_list = self.axapi_call('partition', 'GET').content
-        parsed_json = json.loads(self.partition_list)
+        # instatiate list with shared partition as it is implied and not returned by the REST endpoint
+        partitions = ['shared']
+
+        partition_list = self.axapi_call('partition', 'GET').content
+        parsed_json = json.loads(partition_list)
         for item in parsed_json['partition-list']:
             partitions.append(item["partition-name"])
         return partitions
 
     def get_partition_config(self, partition):
         """gets the configuration for a particular partition"""
-        change_partition = self.axapi_call('DMZ', 'GET')
+        self.axapi_call(partition, 'GET')
         partition_config = self.axapi_call('/running-config', 'GET')
         print(partition_config.content)
 
     def change_partition(self,partition):
         try:
-            set_partition = self.axapi_call('active-partition/' + partition, 'POST')
+            payload = {'active-partition': {'curr_part_name': partition}}
+            set_partition = self.axapi_call('active-partition/' + partition, 'POST', payload)
             print("Status code for change_partition: ", set_partition.status_code)
         except HTTPError:
             logging.debug('Issue changing partition to ',partition)
