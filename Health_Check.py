@@ -27,6 +27,7 @@ import json
 import urllib3
 import logging
 import datetime
+import ast
 
 parser = argparse.ArgumentParser(description='Running this script will issue whatever commands are presented to this script.  All commands are issued from configuration mode.')
 devices = parser.add_mutually_exclusive_group()
@@ -57,6 +58,9 @@ def main():
         device = Acos(device, username, password)
         device.set_logging_env()
         token = device.auth()
+
+        # get a list of partitions (we will iterate over it multiple times later on
+        device.partitions = device.get_partition_list()
 
         ##################################################################################
         # Capture & Save Configurations
@@ -209,6 +213,61 @@ def main():
         # Application Services
         ##################################################################################
 
+        # iterate through each partition
+        for partition in device.partitions:
+
+            # change to the first partition
+            device.change_partition(partition)
+
+            # instatiate empty list of servers
+            servers = []
+            # get json list of servers
+            slb_servers = device.get_slb_servers()
+
+            # for each server in the list (if isn't empty) add the name as a value
+            if slb_servers:
+                for server in slb_servers['server-list']:
+                    servers.append(server['name'])
+
+                # for each named server print a header then the stat information
+                for server in servers:
+                    server_stats = device.get_slb_server_stats(server)
+                    device.build_section_header('Stats for SLB SERVER ' + server)
+                    print(server_stats)
+
+            # instatiate an empty list of service-groups
+            service_groups = []
+            # get the json list of service-groups
+            slb_service_groups = device.get_slb_service_groups()
+
+            # for each service-group in the list (if it isn't empty) add the name as a value
+            if slb_service_groups:
+                for service_group in slb_service_groups['service-group-list']:
+                    service_groups.append(service_group['name'])
+
+                # for each named service-group print a header then the stat information
+                for service_group in service_groups:
+                    service_group_stats = device.get_slb_service_group_stats(service_group)
+                    device.build_section_header('Stats for SLB SERVICE-GROUP ' + service_group)
+                    print(service_group_stats)
+
+            # instatiate an empty list of virtual-servers
+            virtual_servers = []
+            # get teh json list of virtual-servers
+            slb_virtual_servers = device.get_slb_virtual_servers()
+
+            # for each virtual-server in the list (if it isn't empty) add the name as a value
+            if slb_virtual_servers:
+                for virtual_server in slb_virtual_servers['virtual-server-list']:
+                    virtual_servers.append(virtual_server['name'])
+
+                # for each named virtual-server print a header then the stat information
+                for virtual_server in virtual_servers:
+                    virtual_server_stats = device.get_slb_virtual_server_stats(virtual_server)
+                    device.build_section_header('Stats for SLB VIRTUAL-SERVER ' + virtual_server)
+                    print(virtual_server_stats)
+
+        device.change_partition('shared')
 
 
         ##################################################################################
@@ -408,8 +467,10 @@ class Acos(object):
         """gets a list of all slb servers"""
 
         self.logger.debug('Entering get_slb_servers method')
-        servers_list = self.axapi_call('slb/server', 'GET')
-        servers_list = servers_list.content.decode()
+        servers_list = self.axapi_call('slb/server', 'GET').content.decode()
+
+        if servers_list:
+            servers_list = json.loads(servers_list)
         self.logger.info(servers_list)
         self.logger.debug('Exiting get_slb_servers method')
         return servers_list
@@ -418,8 +479,10 @@ class Acos(object):
         """gets a list of all service-groups"""
 
         self.logger.debug('Entering get_slb_service_groups method')
-        service_group_list = self.axapi_call('slb/service-group', 'GET')
-        service_group_list = service_group_list.content.decode()
+        service_group_list = self.axapi_call('slb/service-group', 'GET').content.decode()
+
+        if service_group_list:
+            service_group_list = json.loads(service_group_list)
         self.logger.info(service_group_list)
         self.logger.debug('Exiting get_slb_service_groups method')
         return service_group_list
@@ -428,8 +491,11 @@ class Acos(object):
         """gets a list of all virtual-servers"""
 
         self.logger.debug('Entering get_slb_virtual_servers method')
-        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET')
-        virtual_server_list = virtual_server_list.content.decode()
+        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET').content.decode()
+
+        if virtual_server_list:
+            virtual_server_list = json.loads(virtual_server_list)
+
         self.logger.info(virtual_server_list)
         self.logger.debug('Exiting get_slb_virtual_servers method')
         return virtual_server_list
