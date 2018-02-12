@@ -1,0 +1,4576 @@
+vThunder02-Active-affinity-def-vMaster[5/2](config:2)#show running with-default partition-config all
+!Current configuration: 19215 bytes     
+!Configuration last updated at 13:46:34 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!64-bit Advanced Core OS (ACOS) version 4.1.2-P2, build 68 (Aug-23-2017,17:44)
+!
+vrrp-a common 
+  device-id 2 
+  set-id 5 
+  enable 
+!
+device-context 1
+  vcs enable 
+!
+device-context 2
+  vcs enable 
+!
+vcs floating-ip 192.168.0.155 255.255.255.0 
+vcs multicast-ip 224.0.0.11 
+!
+vcs device 1 
+  priority 155 
+  interfaces management 
+  affinity-vrrp-a-vrid 0 
+  enable 
+!
+vcs device 2 
+  priority 145 
+  interfaces management 
+  affinity-vrrp-a-vrid 0 
+  enable 
+!
+access-list 101 remark INT_CLIENT_ACL 
+!
+access-list 101 remark "Another remark at seq 5" 
+!
+access-list 101 remark "Another remark at seq 6" 
+!
+access-list 101 deny icmp type any-type code any-code any any 
+!
+access-list 101 deny ip host 10.1.30.1 host 10.1.30.150 log 
+!
+access-list 101 permit ip 10.1.30.0 0.0.0.255 any 
+!
+access-list 101 remark DENY_ALL 
+!
+access-list 101 deny ip any any 
+!
+access-list 102 remark ALLOW_ANY 
+!
+access-list 102 permit ip any any log 
+!
+authentication type ldap local 
+!
+ldap-server host 192.168.0.5 cn cn dn OU=testA10,DC=domain,DC=com 
+!
+multi-config enable 
+!
+!
+system resource-usage auth-portal-image-file-size 80 
+!
+no terminal auto-size 
+terminal idle-timeout 0 
+terminal length 57 
+terminal width 175 
+!
+class-list ALLOW_SUBNETS ipv4 
+  1.1.1.0/24 
+!
+class-list CL_CLASS_LIST 
+  172.31.6.200/32 
+!
+class-list HTTP ac 
+  starts-with http:// 
+!
+class-list act_internet_dns 
+  0.0.0.0/0 lid 1 
+!
+ip access-list ALLOW_SUBNETS 
+  permit ip 172.31.5.0 0.0.0.255 any fragments vlan 3 log 
+!
+ip anomaly-drop drop-all 
+ip anomaly-drop land-attack 
+!
+ip dns primary 192.168.0.8 
+!
+ip dns secondary 192.168.0.5 
+!
+device-context 1
+  ip prefix-list VIP seq 10 deny 64.183.6.80/32 
+!
+vlan 1/3 
+  untagged ethernet 3
+  router-interface ve 3 
+  name "br3 -> vMX02|em4" 
+!
+vlan 1/30 
+  untagged ethernet 2
+  router-interface ve 30 
+  name "VLAN30 - SERVERS" 
+!
+vlan 2/3 
+  untagged ethernet 3
+  router-interface ve 3 
+  name "br3 -> vMX02|em4" 
+!
+vlan 2/30 
+  untagged ethernet 2
+  router-interface ve 30 
+  name "VLAN30 - SERVERS" 
+!
+partition DMZ id 1 application-type adc 
+!
+partition DMZII id 2 application-type adc 
+!
+partition EXP-PROXY id 3 application-type adc 
+!
+partition CGN_FixedNat id 5 application-type cgnv6 
+!
+vrrp-a vrid-lead default-vrid-lead 
+  partition shared vrid 0 
+!
+vrrp-a vrid-lead AX1 
+  partition DMZ vrid 0 
+!
+device-context 1
+  lacp system-priority 32000 
+!
+device-context 2
+  lacp system-priority 32000 
+!
+lldp enable rx tx 
+!
+device-context 1
+  bfd enable 
+!
+device-context 2
+  bfd enable 
+  bfd interval 300 min-rx 300 multiplier 3 
+!
+device-context 1
+  ipv6 ospf display route single-line 
+!
+device-context 2
+  ipv6 ospf display route single-line 
+!
+device-context 1
+  hostname vThunder01 
+!
+device-context 2
+  hostname vThunder02 
+!
+ntp server time.google.com 
+  prefer 
+!
+ntp server time.nist.gov 
+!
+device-context 1
+  interface management 
+    ip address 192.168.0.151 255.255.255.0 
+    ip control-apps-use-mgmt-port 
+    ip default-gateway 192.168.0.3 
+!
+device-context 2
+  interface management 
+    ip address 192.168.0.152 255.255.255.0 
+    ip control-apps-use-mgmt-port 
+    ip default-gateway 192.168.0.3 
+!
+interface ethernet 1/1 
+!
+interface ethernet 1/2 
+  enable 
+  lldp enable rx tx 
+  lldp notification enable 
+!
+interface ethernet 1/3 
+  enable 
+  lldp enable rx tx 
+  lldp notification enable 
+!
+interface ethernet 1/4 
+  enable 
+  trunk-group 16 lacp 
+!
+interface ethernet 1/5 
+!
+interface ethernet 1/6 
+!
+interface ethernet 2/1 
+!
+interface ethernet 2/2 
+  enable 
+  lldp enable rx tx 
+!
+interface ethernet 2/3 
+  enable 
+  lldp enable rx tx 
+  lldp notification enable 
+!
+interface ethernet 2/4 
+  enable 
+  trunk-group 15 lacp 
+!
+interface ethernet 2/5 
+!
+interface ethernet 2/6 
+!
+interface trunk 1/16 
+  name TRUNK16 
+  icmp-rate-limit 1000 
+  icmpv6-rate-limit 1000 
+  ip address 10.1.32.2 255.255.255.0 
+  ipv6 address 2600:8801:9600:500::2/64 
+  ipv6 enable 
+!
+interface ve 1/3 
+  ip address 172.31.6.2 255.255.255.0 
+  ip ospf bfd 
+  ip ospf cost 15 
+  ipv6 address 2600:8801:9600:410::2/64 
+  ipv6 enable 
+  ipv6 router ospf area 0 tag 1 
+  ipv6 ospf bfd 
+!
+interface ve 1/30 
+  ip address 10.1.30.250 255.255.255.0 
+  ipv6 address 2600:8801:9600:430::2/64 
+!
+interface ve 2/3 
+  ip address 172.31.6.3 255.255.255.0 
+  ip ospf bfd 
+  ip ospf cost 15 
+  ipv6 address 2600:8801:9600:410::3/64 
+  ipv6 enable 
+  ipv6 router ospf area 0 tag 1 
+  ipv6 ospf bfd 
+!
+interface ve 2/30 
+  ip address 10.1.30.251 255.255.255.0 
+  ipv6 address 2600:8801:9600:430::3/64 
+!
+interface loopback 1/1 
+  ipv6 address 2600:8801:9600:1000::1/128 
+  ipv6 enable 
+  ipv6 router ospf area 0 
+!
+interface loopback 2/1 
+  ipv6 address 2600:8801:9600:1000::2/128 
+  ipv6 enable 
+  ipv6 router ospf area 0 
+!
+vrrp-a vrid 0 
+  floating-ip 172.31.6.1 
+  floating-ip 10.1.30.254 
+  floating-ip 172.31.19.1 
+  floating-ip 2600:8801:9600:410::1 
+  floating-ip 2600:8801:9600:430::1 
+  floating-ip 2600:8801:9600:430::4 
+  device-context 1
+    blade-parameters 
+      priority 155 
+  device-context 2
+    blade-parameters 
+      priority 195 
+      tracking-options 
+        interface ethernet 2 priority-cost 50 
+        interface ethernet 3 priority-cost 50 
+!
+ip nat pool 10_1_30_SNAT 10.1.30.88 10.1.30.88 netmask /24 
+!
+ip nat pool INT_MINT02_SNAT 10.1.30.102 10.1.30.102 netmask /24 
+!
+ip nat pool NEW_SUBNET 172.31.19.50 172.31.19.50 netmask /24 
+!
+ip nat pool-group SNAT 
+  member 10_1_30_SNAT 
+!
+ip nat icmp respond-to-ping 
+!
+ipv6 nat pool v6_SNAT 2600:8801:9600:430::100 2600:8801:9600:430::100 netmask 64 
+!
+vrrp-a interface ethernet 1/3 
+!
+vrrp-a interface ethernet 2/3 
+!
+device-context 1
+  ip mgmt-traffic all source-interface loopback 0 
+!
+device-context 2
+  ip mgmt-traffic all source-interface loopback 0 
+!
+device-context 1
+  ip route 0.0.0.0 /0 172.31.6.254 
+!
+device-context 1
+  ip route 192.168.200.0 /24 192.168.0.3 
+!
+device-context 2
+  ip route 0.0.0.0 /0 172.31.6.254 
+!
+device-context 2
+  ip route 192.168.200.0 /24 192.168.0.3 
+!
+device-context 1
+  ipv6 route ::/0 2600:8801:9600:410::122 
+!
+device-context 2
+  ipv6 route ::/0 2600:8801:9600:410::122 
+!
+aam authentication global sampling-enable misses 
+aam authentication global sampling-enable connect-failed 
+aam authentication global sampling-enable aflex-authz-fail 
+aam authentication global sampling-enable get-socket-option-failed 
+aam authentication global sampling-enable create-timer-failed 
+!
+aam authentication portal default-portal 
+  logo def_logo.png 
+  user-tag act_fba_FBA-POLICY_default-portal 
+!
+aam authentication logon http-authenticate WIA-POLICY_wia_logon 
+  auth-method negotiate enable 
+!
+aam authentication logon http-authenticate ntlm_wia_logon 
+  auth-method ntlm enable 
+!
+aam authentication logon form-based FBA-POLICY_default-portal 
+  portal default-portal 
+  user-tag act_fba_FBA-POLICY_default-portal 
+!
+aam authentication logon form-based FBA-POLICY_logon.zip 
+  portal logon.zip logon logon.html failpage fail.html changepasswordpage change.html 
+  action-url /logon.fo 
+  username-variable user 
+  password-variable pwd 
+  changepassword-url /change.fo 
+  changepassword-username-variable cp_usr 
+  changepassword-old-password-variable cp_old_pwd 
+  changepassword-new-password-variable cp_new_pwd 
+  changepassword-password-confirm-variable cp_cfm_pwd 
+  user-tag act_fba_FBA-POLICY_logon.zip 
+!
+!
+!
+aam authentication log enable 
+!
+aam authentication account sampling-enable all 
+!
+aam authentication account kerberos-spn WIA-POLICY_wia_kbr_account 
+  realm domain.me 
+  account "wia admin" 
+  service-principal-name HTTP/web-vip-hq.domain.me 
+  password encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+!
+aam authentication saml service-provider OKTA_SP 
+  artifact-resolution-service index 0 location /app/activisionblizzardsandbox_blizzardmama10_1/ binding soap 
+  assertion-consuming-service index 0 location /api/SsoAuthLoginResponse binding post 
+  single-logout-service location /app/activisionblizzardsandbox_blizzardmama10_1/ binding post 
+  entity-id http://10.131.85.50 
+  saml-request-signed disable 
+  service-url http://10.131.85.50 
+!
+aam authentication saml identity-provider OKTA_IDP 
+  metadata A10_OKTA_3 
+!
+aam authentication saml identity-provider NEW_OKTA_IDP 
+  metadata a10_v2 
+!
+slb common 
+  extended-stats 
+  graceful-shutdown 30 server after-disable 
+  rate-limit-logging max-remote-rate 2000 exclude-destination local 
+  enable-l7-req-acct 
+  drop-icmp-to-vip-when-vip-down 
+!
+slb resource-usage virtual-server-count 128 
+!
+health global 
+  multi-process 2 
+!
+health monitor HM-HTTP-80 
+  method http port 80 expect response-code 200 url GET / 
+!
+health monitor HM-HTTPS-443 
+  override-port 443 
+!
+health monitor HM-SYSLOG-514 
+  override-port 514 
+!
+health monitor HM-SSL-VPN 
+  interval 16 timeout 16 
+  method http port 443 url GET "/dana-na/healthcheck/healthcheck.cgi HTTP/1.1\\\\r\\\\n\\\\r\\\\n" 
+!
+health monitor HM-GOOGLE 
+  override-port 80 
+  method http expect response-code 200 host www.google.com 
+!
+health monitor HM-GOOGLE-443 
+  method https port 443 host www.google.com 
+!
+health monitor HM-HTTP-8080 
+  override-port 8080 
+!
+health monitor FTP_HM 
+  method ftp username ftp1 password encrypted kWxrifEqM/uOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+!
+health monitor HM_PORT_1120 
+!
+health monitor HM_PORT_1121 
+!
+health monitor Hm_act_vip_64_183_5_30_80 
+  interval 10 
+  user-tag uiext_l4_slb_act_vip_64_183_5_30_HM 
+!
+health monitor Hm_undefined_80 
+  interval 10 
+  user-tag uiext_l4_slb_undefined_HM 
+!
+health monitor WIN2K8 
+  ssl-ciphers DEFAULT:!EXP:!SSLv2:!DES:!IDEA:!SEED:!SSLv3 
+  method https expect SSLi host win2k8.domain.me url GET /ssli.local/ cert WIN2K8 key WIN2K8 key-pass-phrase encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+!
+health monitor hm_HTTPS_8443 
+  ssl-ciphers DEFAULT:!EXP:!SSLv2:!DES:!IDEA:!SEED:!SSLv3 
+  method https port 8443 
+!
+health monitor HM-DNS-53 
+  method dns domain domain.me tcp 
+!
+health monitor HM_STR_CHK 
+  method http port 80 expect OK 
+!
+health monitor HM_HTTP_PROBE 
+  method http port 80 expect probe url GET /probe.html 
+!
+health monitor HM_HTTP_RC_200 
+  method http port 80 expect response-code 200 url GET /probe.html 
+!
+health monitor HM_COMPOUND_HTTP 
+  method compound sub HM_HTTP_PROBE sub HM_HTTP_RC_200 and 
+!
+health monitor HM_HASH_HTTP_MD5 
+  method external program HM_HASH_HTTP port 80 arguments "'probe.html' 'http' '59b74da70ae9efa34bbabeec15d3f7bb'" 
+!
+health monitor Mysql_3306 
+  override-port 3306 
+  method database mysql db-name a10check username viphealth password encrypted 37O48xvi8uY8EIy41dsA5zwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+!
+health monitor HM-HTTP-81 
+  method http port 81 expect response-code 200 url GET / 
+!
+health monitor Hm_vip_172_31_6_53_53_tcp_dns 
+  user-tag Hm_vip_172_31_6_53_53_tcp_dns 
+  method dns domain www.domain.me expect response-code 0 recurse enabled tcp type A 
+!
+health monitor Hm_vip_172_31_6_53_53_udp_dns 
+  user-tag Hm_vip_172_31_6_53_53_udp_dns 
+  method dns domain www.domain.me expect response-code 0 type A 
+!
+health monitor domain 
+  method http port 80 expect domain host www123.domain.me url GET /probe.html 
+!
+health monitor AUBURN 
+  method http port 80 expect auburn host www123.auburn.me url GET /probe.html 
+!
+health monitor HM_PROXY_PROTOCOL 
+  method external program HM_PROXY_PROTOCOL port 8080 
+!
+health monitor FAST-PING 
+!
+health monitor hm_RTSP 
+  method rtsp rtspurl /URL_string 
+!
+health monitor hm_FTP_2121 
+  retry 10 
+  interval 30 timeout 15 
+  method ftp port 2121 username admin password encrypted 37O48xvi8uY8EIy41dsA5zwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+!
+aam authentication server ldap WIA-POLICY_wia_ldap_server 
+  host 192.168.0.64 
+  base CN=Users,DC=domain,DC=com 
+  admin-dn "CN=wia admin,CN=Users,DC=domain,DC=com" 
+  admin-secret encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  derive-bind-dn username-attr sAMAccountName 
+!
+aam authentication server ldap act_fba_FBA-POLICY_authoi_ldap_server 
+  host 192.168.0.64 
+  base CN=Users,DC=domain,DC=com 
+  admin-dn "CN=wia admin,CN=Users,DC=domain,DC=com" 
+  admin-secret encrypted cTLA4T3f/1eOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  default-domain domain.me 
+  derive-bind-dn username-attr sAMAccountName 
+!
+aam authentication server ldap ntlm_wia_ldap_server 
+  host 192.168.0.64 
+  base CN=Users,DC=domain,DC=com 
+  admin-dn "CN=wia admin,CN=Users,DC=domain,DC=com" 
+  admin-secret encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  derive-bind-dn username-attr sAMAccountName 
+!
+aam authentication server windows WIA-POLICY_wia_auth_server 
+  host 192.168.0.64 
+  auth-protocol ntlm-disable 
+  realm domain.me 
+  support-apacheds-kdc 
+!
+aam authentication server windows act_fba_FBA-POLICY_ntlm_auth_server 
+  host 192.168.0.64 
+  auth-protocol kerberos-disable 
+!
+aam authentication server windows ntlm_wia_auth_server 
+  host 192.168.0.64 
+  auth-protocol kerberos-disable 
+!
+aam authentication template AUTH_SESSION_IP_BASED 
+  auth-sess-mode ip-based 
+!
+aam authentication template OKTA_TEMPLATE 
+  type saml 
+  saml-sp OKTA_SP 
+!
+aam authentication template WIA-POLICY_wia_kbr_templ 
+  logon WIA-POLICY_wia_logon 
+  server WIA-POLICY_wia_auth_server 
+  account WIA-POLICY_wia_kbr_account 
+  user-tag act_wia_WIA-POLICY_wia_kbr_templ 
+!
+aam authentication template act_fba_FBA-POLICY_auth_template 
+  logon FBA-POLICY_default-portal 
+  server act_fba_FBA-POLICY_ntlm_auth_server 
+  user-tag act_fba_FBA-POLICY_auth_template 
+!
+aam authentication template ntlm_wia_ntlm_templ 
+  logon ntlm_wia_logon 
+  server ntlm_wia_auth_server 
+!
+aam authorization policy FBA-POLICY_authoi_policy_1 
+  server act_fba_FBA-POLICY_authoi_ldap_server 
+  user-tag act_fba_FBA-POLICY_authoi_policy_1 
+!
+aam authorization policy FBA-POLICY_authoi_policy_2 
+  attribute-rule 1
+  server act_fba_FBA-POLICY_authoi_ldap_server 
+  user-tag act_fba_FBA-POLICY_authoi_policy_2 
+  attribute 1 memberOf attr-type string sub-string a10ADMINS
+!
+aam authorization policy FBA-POLICY_authoi_policy_3 
+  server act_fba_FBA-POLICY_authoi_ldap_server 
+  user-tag act_fba_FBA-POLICY_authoi_policy_3 
+!
+aam authorization policy SAML_TEST 
+!
+aam authorization policy WIA-POLICY_wia_autho_policy_1 
+  server WIA-POLICY_wia_ldap_server 
+  user-tag act_wia_WIA-POLICY_wia_autho_policy_1 
+!
+aam authorization policy WIA-POLICY_wia_autho_policy_2 
+  server WIA-POLICY_wia_ldap_server 
+  user-tag act_wia_WIA-POLICY_wia_autho_policy_2 
+!
+aam authorization policy WIA-POLICY_wia_autho_policy_3 
+  server WIA-POLICY_wia_ldap_server 
+  user-tag act_wia_WIA-POLICY_wia_autho_policy_3 
+!
+aam authorization policy ntlm_wia_autho_policy_1 
+  attribute-rule 1 or 2
+  server ntlm_wia_ldap_server 
+  attribute 1 memberOf attr-type string sub-string Administrators
+  attribute 2 memberOf attr-type string sub-string hr
+!
+aam authorization policy ntlm_wia_autho_policy_2 
+  server ntlm_wia_ldap_server 
+!
+aam authorization policy ntlm_wia_autho_policy_3 
+  server ntlm_wia_ldap_server 
+!
+aam aaa-policy FBA-POLICY 
+  user-tag act_fba_FBA-POLICY 
+  aaa-rule 1 
+    action allow 
+    authentication-template act_fba_FBA-POLICY_auth_template 
+    user-tag act_fba_FBA-POLICY_authoi_policy_1 
+  aaa-rule 2 
+    action allow 
+    authentication-template act_fba_FBA-POLICY_auth_template 
+    authorize-policy FBA-POLICY_authoi_policy_2 
+    user-tag act_fba_FBA-POLICY_authoi_policy_2 
+  aaa-rule 3 
+    action allow 
+    authentication-template act_fba_FBA-POLICY_auth_template 
+    user-tag act_fba_FBA-POLICY_authoi_policy_3 
+!
+aam aaa-policy OKTA_POLICY 
+  aaa-rule 1 
+    action allow 
+!
+aam aaa-policy WIA-POLICY 
+  user-tag act_wia_WIA-POLICY 
+  aaa-rule 1 
+    action allow 
+    authentication-template WIA-POLICY_wia_kbr_templ 
+    user-tag WIA-POLICY_aaa_policy_rule_1 
+  aaa-rule 2 
+    uri starts-with /public 
+    action allow 
+    user-tag WIA-POLICY_aaa_policy_rule_2 
+  aaa-rule 3 
+    uri starts-with /private 
+    action allow 
+    authentication-template WIA-POLICY_wia_kbr_templ 
+    user-tag WIA-POLICY_aaa_policy_rule_3 
+!
+aam aaa-policy ntlm 
+  aaa-rule 1 
+    uri starts-with /private 
+    action allow 
+    authentication-template ntlm_wia_ntlm_templ 
+    authorize-policy ntlm_wia_autho_policy_1 
+  aaa-rule 2 
+    uri starts-with /public 
+    action allow 
+  aaa-rule 3 
+    action allow 
+    authentication-template ntlm_wia_ntlm_templ 
+!
+slb template cipher max_compatibility 
+  SSL3_RSA_DES_192_CBC3_SHA priority 36 
+  TLS1_RSA_AES_128_SHA priority 40 
+  TLS1_RSA_AES_256_SHA priority 38 
+  TLS1_ECDHE_RSA_AES_128_SHA priority 70 
+  TLS1_ECDHE_RSA_AES_256_SHA priority 64 
+  TLS1_RSA_AES_128_SHA256 priority 44 
+  TLS1_RSA_AES_256_SHA256 priority 42 
+  TLS1_ECDHE_RSA_AES_128_SHA256 priority 76 
+  TLS1_DHE_RSA_AES_128_SHA256 priority 62 
+  TLS1_DHE_RSA_AES_256_SHA256 priority 58 
+!
+slb template cipher max_security 
+  TLS1_ECDHE_RSA_AES_128_SHA256 priority 72 
+!
+slb template connection-reuse CONN-REUSE 
+!
+slb template ftp FTP_TEMPLATE 
+  active-mode-port any 
+!
+slb template persist cookie cookie_persist 
+  expire 0 
+  name a10_server 
+  match-type server 
+!
+slb template persist source-ip source-ip-persistence 
+  hash-persist 
+  timeout 600 
+  match-type server 
+!
+slb template persist source-ip undefined_persist_template_80 
+  user-tag uiext_l4_slb_undefined_persist_template_80 
+!
+slb template persist source-ip persist_template_vip_172_31_6_53_53_dns_tcp_dns 
+  user-tag persist_template_vip_172_31_6_53_53_dns_tcp_dns 
+!
+slb template persist source-ip persist_template_vip_172_31_6_53_53_dns_udp_dns 
+  user-tag persist_template_vip_172_31_6_53_53_dns_udp_dns 
+!
+slb template port PORT_TEMPLATE_CONN-LIMIT 
+  conn-limit 2 resume 3 
+!
+slb template port REAL_SERVER_PORT 
+  down-grace-period 60 
+!
+slb template server CONN_LIMIT_TMP 
+  conn-limit 5 
+!
+slb template server-ssl "Server SSL Template" 
+!
+slb template server-ssl ServerSideSSL 
+  session-ticket-enable 
+!
+slb template server-ssl t_ssl_Server_Test 
+!
+slb template tcp TCP_TEMPLATE 
+  insert-client-ip 
+!
+slb template tcp FTP_LONG_IDLE_TIME 
+  idle-timeout 15000 
+!
+slb template tcp TELNET 
+  idle-timeout 3600 
+  insert-client-ip 
+!
+slb template tcp-proxy TCP-PROXY-LOG 
+  keepalive-probes 4 
+!
+slb template udp UDP_TEMPLATE 
+  aging immediate 
+!
+slb template virtual-port undefined_virtual_port_template_80 
+  conn-limit 100 reset 
+  conn-rate-limit 50 per second reset 
+  user-tag uiext_l4_slb_undefined_80 
+!
+slb template virtual-server undefined_virtual_server_template 
+  user-tag uiext_l4_slb_undefined_vip_template 
+!
+slb template dblb DBLB_TEMPLATE 
+  server-version MySQL 
+!
+slb template smpp SMPP_TEMPLATE 
+!
+slb template dynamic-service DNS 
+  dns server 8.8.8.8 
+!
+slb server BADSTORE 10.1.30.6 
+  health-check ping 
+  extended-stats 
+  port 80 tcp 
+!
+slb server Dummy-Server-Disabled 1.2.1.2 
+  health-check-disable 
+  port 80 tcp 
+    health-check-disable 
+!
+slb server GOOGLE_SRVR 216.58.217.196 
+  health-check-disable 
+  port 80 tcp 
+    health-check-disable 
+  port 443 tcp 
+    health-check-disable 
+!
+slb server LADC01 172.18.0.2 
+  port 8880 tcp 
+!
+slb server LADC02 172.17.0.3 
+  port 8001 tcp 
+!
+slb server LADC03 172.17.0.4 
+  port 8000 tcp 
+!
+slb server LADC04 172.18.0.5 
+  port 8002 tcp 
+!
+slb server LADC05 172.18.0.10 
+  port 8004 tcp 
+!
+slb server MINT01 10.1.30.1 
+  template server CONN_LIMIT_TMP 
+  extended-stats 
+  user-tag uiext_l4_slb_srv_10_1_30_1 
+  port 21 tcp 
+    health-check FTP_HM 
+  port 22 tcp 
+  port 23 tcp 
+  port 80 tcp 
+    health-check HM-HTTP-80 
+    extended-stats 
+  port 81 tcp 
+  port 443 tcp 
+    health-check HM-HTTPS-443 
+    extended-stats 
+  port 800 udp 
+    health-check-disable 
+  port 2121 tcp 
+    health-check-disable 
+  port 3306 tcp 
+    health-check Mysql_3306 
+    extended-stats 
+  port 3389 tcp 
+  port 8080 tcp 
+    health-check HM-HTTP-8080 
+  port 8081 tcp 
+  port 8443 tcp 
+    health-check hm_HTTPS_8443 
+    extended-stats 
+!
+slb server MINT01_v6 2600:8801:9600:430::161 
+  port 80 tcp 
+    extended-stats 
+!
+slb server MINT02 10.1.30.2 
+  template server CONN_LIMIT_TMP 
+  extended-stats 
+  user-tag uiext_l4_slb_srv_10_1_30_2 
+  port 21 tcp 
+    health-check FTP_HM 
+  port 23 tcp 
+    extended-stats 
+  port 80 tcp 
+    health-check HM-HTTP-80 
+    extended-stats 
+  port 81 tcp 
+    health-check ping 
+  port 443 tcp 
+    health-check HM-HTTPS-443 
+  port 3306 tcp 
+    health-check Mysql_3306 
+  port 3389 tcp 
+  port 8080 tcp 
+    health-check HM-HTTP-8080 
+!
+slb server MINT02_v6 2600:8801:9600:430::162 
+  port 80 tcp 
+!
+slb server WAFLOGGER02 10.10.1.182 
+  port 514 tcp 
+  port 3389 tcp 
+  port 8000 tcp 
+!
+slb server WEB-CASINO 10.1.30.99 
+  health-check ping 
+  port 80 tcp 
+  port 443 tcp 
+  port 3000 tcp 
+    extended-stats 
+  port 3389 tcp 
+  port 5353 tcp 
+    health-check-disable 
+!
+slb server WIN10_SRVR 10.40.1.111 
+  port 22 tcp 
+  port 3389 tcp 
+  port 5901 tcp 
+!
+slb server WIN2012 10.1.30.64 
+  port 21 tcp 
+  port 22 tcp 
+  port 23 tcp 
+  port 25 tcp 
+  port 53 tcp 
+  port 53 udp 
+  port 80 tcp 
+  port 123 udp 
+  port 389 tcp 
+  port 443 tcp 
+  port 445 tcp 
+  port 445 udp 
+  port 636 tcp 
+  port 5353 tcp 
+    health-check-disable 
+!
+slb server srv_10_1_30_53 10.1.30.53 
+  user-tag srv_10_1_30_53_dns 
+  port 53 tcp 
+    health-check ping 
+    user-tag srv_10_1_30_53_port_53_protocol_tcp_dns 
+    sampling-enable total_conn 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+    sampling-enable total_req 
+  port 53 udp 
+    health-check ping 
+    user-tag srv_10_1_30_53_port_53_protocol_udp_dns 
+    sampling-enable total_conn 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+    sampling-enable total_req 
+!
+slb service-group ALT_PORT_81 tcp 
+  member MINT02 81 
+!
+slb service-group AUBURN tcp 
+  health-check AUBURN 
+  member MINT01 80 
+!
+slb service-group DB_SERVERS tcp 
+  health-check Mysql_3306 
+  member MINT01 3306 
+  member MINT02 3306 
+!
+slb service-group Dummy-SG tcp 
+  health-check-disable 
+  member Dummy-Server-Disabled 80 
+!
+slb service-group FTP_2121 tcp 
+  member MINT01 2121 
+!
+slb service-group FTP_SG tcp 
+  extended-stats 
+  sample-rsp-time 
+  member MINT01 21 
+  member MINT02 21 
+!
+slb service-group MINT01_UDP_800 udp 
+  member MINT01 800 
+!
+slb service-group TELNET_VIP tcp 
+  extended-stats 
+  sample-rsp-time 
+  member MINT01 23 
+  member MINT02 23 
+!
+slb service-group WAF-LOG-DATA tcp 
+  member WAFLOGGER02 514 
+!
+slb service-group domain-SG tcp 
+  health-check domain 
+  member MINT01 80 
+!
+slb service-group WEB-BADSTORE-80 tcp 
+  method least-connection 
+  extended-stats 
+  member BADSTORE 80 
+!
+slb service-group WEB-CASINO-3000 tcp 
+  member WEB-CASINO 3000 
+!
+slb service-group WEB-CASINO-443 tcp 
+  member WEB-CASINO 443 
+!
+slb service-group WEB-CASINO-5353-tcp tcp 
+  member WEB-CASINO 5353 
+!
+slb service-group WEB-CASINO-80 tcp 
+  member WEB-CASINO 80 
+!
+slb service-group WEB-SERVERS-443 tcp 
+  method least-connection 
+  extended-stats 
+  health-check HM-HTTPS-443 
+  member MINT01 443 
+  member MINT02 443 
+!
+slb service-group WEB-SERVERS-80 tcp 
+  extended-stats 
+  member MINT01 80 
+  member MINT02 80 
+!
+slb service-group WEB-SERVERS-8080 tcp 
+  member MINT01 8080 
+  member MINT02 8080 
+!
+slb service-group WEB-SERVERS-81 tcp 
+  method least-connection 
+  extended-stats 
+  member MINT01 81 
+!
+slb service-group WEB_SERVER_MIX_PORT tcp 
+  health-check HM-HTTP-80 
+  member MINT01 80 
+  member MINT02 81 
+!
+slb service-group WEB_v6_80 tcp 
+  traffic-replication-type mirror-ip-repl 
+  member MINT01_v6 80 
+  member MINT02_v6 80 
+!
+slb service-group WIN2012_DNS_TCP tcp 
+  member WIN2012 53 
+!
+slb service-group WIN2012_DNS_UDP udp 
+  member WIN2012 53 
+!
+slb service-group WIN2012_WEB_ tcp 
+  member WIN2012 22 
+!
+slb service-group WIN2012_WEB_443 tcp 
+  member WIN2012 443 
+!
+slb service-group WIN2012_WEB_80 tcp 
+  member WIN2012 80 
+!
+slb service-group sg_MINT01 tcp 
+  member MINT01 22 
+  member MINT01 80 
+  member MINT01 443 
+!
+slb service-group sg_MINT01_8443 tcp 
+  member MINT01 8443 
+!
+slb service-group sg_WIN10_SRVR02_5353 tcp 
+!
+slb service-group sg_WIN2012_5353_TCP tcp 
+  member WIN2012 5353 
+!
+slb service-group undefined_80_tcp_sg tcp 
+  method least-connection 
+  health-check Hm_undefined_80 
+  user-tag uiext_l4_slb_undefined_sg_tcp_80 
+  member MINT01 80 
+  member MINT02 80 
+!
+slb service-group vip_172_31_6_53_53_tcp_sg_dns tcp 
+  method least-connection 
+  health-check Hm_vip_172_31_6_53_53_tcp_dns 
+  user-tag vip_172_31_6_53_53_tcp_sg_dns 
+  member srv_10_1_30_53 53 
+!
+slb service-group vip_172_31_6_53_53_udp_sg_dns udp 
+  method least-connection 
+  health-check Hm_vip_172_31_6_53_53_udp_dns 
+  user-tag vip_172_31_6_53_53_udp_sg_dns 
+  member srv_10_1_30_53 53 
+!
+ip nat template logging NAT_FILE 
+  log port-mappings creation 
+  include-destination 
+  include-rip-rport 
+  severity informational 
+  service-group WAF-LOG-DATA 
+!
+slb template client-ssl CLIENT-SSL-CERT 
+  cert SSL-CERT 
+  enable-tls-alert-logging fatal 
+  key SSL-CERT pass-phrase encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  server-name test1.domain.me cert wildcard.domain.me key wildcard.domain.me 
+!
+slb template client-ssl CLIENT_SSL_TEMPLATE 
+  template cipher max_compatibility 
+  cert SSL-CERT 
+  key SSL-CERT 
+  server-name isupplier.jackinthebox.com cert SSL-CERT key SSL-CERT 
+  disable-sslv3 
+!
+slb template dns DNS_TEMPLATE 
+  default-policy cache 
+  malformed-query drop 
+  enable-cache-sharing 
+!
+slb template dns dns_templ_vip_172_31_6_53_53_dns_tcp_dns 
+  default-policy cache 
+  malformed-query drop 
+  user-tag vip_172_31_6_53_53_dns_tcp_dns 
+  class-list act_internet_dns 
+    lid 1 
+      conn-rate-limit 25 per 10 
+      over-limit-action log 1 
+!
+slb template dns dns_templ_vip_172_31_6_53_53_dns_udp_dns 
+  default-policy cache 
+  malformed-query drop 
+  user-tag vip_172_31_6_53_53_dns_udp_dns 
+  class-list act_internet_dns 
+    lid 1 
+      conn-rate-limit 25 per 10 
+      over-limit-action log 1 
+!
+slb template imap-pop3 IMAP_POP3_TEMPLATE 
+  starttls optional 
+!
+slb template logging WAF-LOG-DATA01 
+  service-group WAF-LOG-DATA 
+  template tcp-proxy TCP-PROXY-LOG 
+!
+slb template http HOST-SWITCHING-HTTP-TEMPLATE 
+  host-switching equals www123.domain.me service-group domain-SG 
+  host-switching equals www123.auburn.me service-group AUBURN 
+  insert-client-ip X-CLIENT-IP 
+  template logging WAF-LOG-DATA01 
+!
+slb template http HTTP_XFF_TEMP 
+  insert-client-ip X-FORWARDED-FOR 
+!
+slb template http NEW_HTTP 
+  insert-client-ip X-FORWARDED-FOR 
+!
+slb template http CONTENT_REPLACE 
+  response-content-replace depth1/depth2/depth3/depth4 depth4 
+!
+slb template http REPLACE_HOST_HEADER 
+  request-header-erase Host 
+  request-header-insert "Host: war-web-vip01.domain.me" insert-always 
+!
+slb template http PDS 
+  host-switching equals intranet.pdsconnect.com service-group ALT_PORT_81 
+!
+slb template http CLIENT_IP 
+  insert-client-ip X-CLIENT-FOR 
+!
+slb template http HTTP_HEADER_INSERTS 
+  insert-client-ip X-FORWARDED-HOST 
+  request-header-insert "X-FORWARDED-FOR: IP::client_addr" insert-always 
+  request-header-insert "X-FORWARDED-HOST: HTTP::host" insert-always 
+!
+slb template http INSERT_HEADERS 
+  request-header-insert "X-Forwarded-Proto: $proto" insert-always 
+  request-header-insert "X-Forwarded-Port: " insert-always 
+  request-header-insert "X-Forwarded-Host: " insert-always 
+  request-header-insert "X-Forwarded-For: $cip" insert-always 
+!
+slb template cache RAM-CACHING 
+  template logging WAF-LOG-DATA01 
+  verify-host 
+!
+slb template policy CONN_LIMIT_POLICY 
+  class-list CL_CLASS_LIST 
+    lid 1 
+      conn-limit 5 
+      over-limit-action reset 
+!
+slb template policy ALLOW_VIP_ACCESS 
+  class-list ALLOW_SUBNETS 
+!
+slb template policy EXPLICIT_PROXY 
+  forward-policy 
+    action PERMIT_TO_INTERNET 
+      forward-to-internet WEB-SERVERS-80 fallback WEB-SERVERS-8080 
+      log 
+    source ANY_SOURCE 
+      match-any 
+      destination any action PERMIT_TO_INTERNET 
+!
+slb template sip SIP_TEMPALTE 
+  alg-source-nat 
+  failed-client-selection drop 
+  insert-client-ip 
+  server-selection-per-request 
+  dialog-aware 
+!
+slb template smtp SMTP_TEMPLATE 
+  server-domain smtpout.secureserver.net 
+  starttls client optional 
+  starttls server optional 
+!
+slb template external-service EXT_SERVICE_TEMPLATE 
+  service-group WEB-SERVERS-80 
+  template tcp-proxy TCP-PROXY-LOG 
+  template persist source-ip source-ip-persistence 
+!
+slb template reqmod-icap REQMOD_ICAP 
+  allowed-http-methods "GET POST" 
+!
+slb template respmod-icap RESPMOD_ICAP 
+  include-protocol-in-uri 
+  fail-close 
+  min-payload-size 56 
+!
+waf template WAF01 
+  bot-check bot_defs 
+  buf-ovf disable 
+  buf-ovf max-cookie-len 0 
+  buf-ovf max-cookie-name-len 0 
+  buf-ovf max-cookie-value-len 0 
+  buf-ovf max-cookies-len 0 
+  buf-ovf max-hdr-name-len 0 
+  buf-ovf max-hdr-value-len 0 
+  buf-ovf max-hdrs-len 0 
+  buf-ovf max-line-len 0 
+  buf-ovf max-parameter-name-len 0 
+  buf-ovf max-parameter-total-len 0 
+  buf-ovf max-parameter-value-len 0 
+  buf-ovf max-post-size 0 
+  buf-ovf max-query-len 0 
+  buf-ovf max-url-len 0 
+  ccn-mask 
+  deny-action http-resp-403 "<html><title>Request Denied!</title><body><center><h1>Request Denied!</h1><p>If you have any questions contact the admin.</p></center></body></html>" 
+  json-limit max-array-value-count 0 
+  json-limit max-depth 0 
+  json-limit max-object-member-count 0 
+  json-limit max-string 0 
+  log-succ-reqs 
+  max-cookies 2 
+  max-entities 0 
+  max-hdrs 16 
+  max-parameters 5 
+  sqlia-check reject sqlia_defs 
+  ssn-mask 
+  template logging WAF-LOG-DATA01 
+  xml-limit max-attr 0 
+  xml-limit max-attr-name-len 0 
+  xml-limit max-attr-value-len 0 
+  xml-limit max-cdata-len 0 
+  xml-limit max-elem 0 
+  xml-limit max-elem-child 0 
+  xml-limit max-elem-depth 0 
+  xml-limit max-elem-name-len 0 
+  xml-limit max-entity-exp 0 
+  xml-limit max-entity-exp-depth 0 
+  xml-limit max-namespace 0 
+  xml-limit max-namespace-uri-len 0 
+  xml-sqlia-check 
+!
+waf template WAF02 
+  bot-check bot_defs 
+  buf-ovf max-cookie-len 256 
+  buf-ovf max-cookie-value-len 256 
+  buf-ovf max-cookies-len 256 
+  buf-ovf max-hdr-name-len 50 
+  buf-ovf max-hdr-value-len 125 
+  buf-ovf max-hdrs-len 1024 
+  buf-ovf max-line-len 64 
+  buf-ovf max-parameter-name-len 128 
+  buf-ovf max-parameter-total-len 1024 
+  buf-ovf max-parameter-value-len 24 
+  buf-ovf max-post-size 64 
+  buf-ovf max-query-len 0 
+  buf-ovf max-url-len 48 
+  ccn-mask 
+  deny-action http-resp-403 "<html><title>Request Denied! - WAF02</title><body><center><h1>Request Denied! - WAF02</h1><p>If you have any questions contact the admin at nowhere@mail.org.</p></center></body></html>" 
+  json-limit max-array-value-count 0 
+  json-limit max-depth 0 
+  json-limit max-object-member-count 0 
+  json-limit max-string 0 
+  max-cookies 2 
+  max-entities 0 
+  max-hdrs 24 
+  max-parameters 10 
+  ssn-mask 
+  template logging WAF-LOG-DATA01 
+  xml-limit max-attr 0 
+  xml-limit max-attr-name-len 0 
+  xml-limit max-attr-value-len 0 
+  xml-limit max-cdata-len 0 
+  xml-limit max-elem 0 
+  xml-limit max-elem-child 0 
+  xml-limit max-elem-depth 0 
+  xml-limit max-elem-name-len 0 
+  xml-limit max-entity-exp 0 
+  xml-limit max-entity-exp-depth 0 
+  xml-limit max-namespace 0 
+  xml-limit max-namespace-uri-len 0 
+  xss-check sanitize jscript_defs 
+!
+slb virtual-server FTP_VIP 172.31.6.21 /32 
+  description FTP_VIP
+  extended-stats 
+  port 21 ftp 
+    name FTP_PORT_21 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group FTP_SG 
+    template tcp FTP_LONG_IDLE_TIME 
+  port 2121 ftp 
+    name FTP_PORT_2121 
+    extended-stats 
+    aflex PROXY_PROTOCOL 
+    source-nat pool 10_1_30_SNAT 
+    service-group FTP_2121 
+    template tcp FTP_LONG_IDLE_TIME 
+  port 8443 tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group sg_MINT01_8443 
+!
+slb virtual-server INT_SRVR_VIP 10.1.30.150 /32 
+  port 80 tcp 
+    name VPORT_80 
+    extended-stats 
+    access-list 101 
+    source-nat pool INT_MINT02_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+!
+slb virtual-server L4_VIP 172.31.6.99 /32 
+  port 80 tcp 
+    name TCP_80 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+!
+slb virtual-server NEW_SUBNET 172.31.19.100 /32 
+  port 80 http 
+    source-nat pool NEW_SUBNET 
+    service-group Dummy-SG 
+!
+slb virtual-server TELNET_VIP 172.31.6.23 /32 
+  description TELNET_VIP
+  extended-stats 
+  port 23 tcp 
+    name TELNET_PORT_23 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group TELNET_VIP 
+    template tcp TELNET 
+!
+slb virtual-server WEB-CASINO 172.31.6.85 /32 
+  description WEB CASINO - 192.168.0.99 - port 3000
+  extended-stats 
+  port 80 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-3000 
+    use-rcv-hop-for-resp 
+    aaa-policy FBA-POLICY 
+  port 443 tcp 
+    ha-conn-mirror 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-443 
+    use-rcv-hop-for-resp 
+  port 3000 tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-3000 
+    use-rcv-hop-for-resp 
+  port 5353 tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-5353-tcp 
+    use-rcv-hop-for-resp 
+!
+slb virtual-server WEB_BADSTORE 172.31.6.83 
+  extended-stats 
+  port 80 http 
+    name WEB-BADSTORE 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-BADSTORE-80 
+    use-rcv-hop-for-resp 
+    template waf WAF01 
+    aaa-policy FBA-POLICY 
+  port 443 https 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-BADSTORE-80 
+    use-rcv-hop-for-resp 
+    template waf WAF01 
+!
+slb virtual-server WEB_VIP 172.31.6.80 /32 
+  port 80 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    template http CLIENT_IP 
+  port 81 tcp 
+    aflex PROXY_PROTOCOL 
+  port 443 https 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    template client-ssl CLIENT-SSL-CERT 
+  port 800 udp 
+    service-group MINT01_UDP_800 
+  port 8080 http 
+    name vp_8080 
+    extended-stats 
+    source-nat auto 
+    service-group WEB-SERVERS-8080 
+!
+slb virtual-server WEB_VIP_4 172.31.6.84 /32 
+  port 80 http 
+    aflex LOG_SESSION_INFO 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+!
+slb virtual-server WEB_VIP_81 172.31.6.81 
+  port 80 http 
+    aflex INSERT_HEADERS 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+  port 81 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+    aaa-policy ntlm 
+  port 443 https 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-443 
+    use-rcv-hop-for-resp 
+!
+slb virtual-server WEB_VIP_V6 2600:8801:9600:410::80 
+  port 80 http 
+    extended-stats 
+    source-nat auto 
+    service-group WEB_v6_80 
+    use-rcv-hop-for-resp 
+    template http CLIENT_IP 
+!
+slb virtual-server WIN10_SRVR02 172.31.6.111 /32 
+  port 5353 dns-tcp 
+    extended-stats 
+    syn-cookie 
+    source-nat pool 10_1_30_SNAT 
+    service-group sg_WIN10_SRVR02_5353 
+    use-rcv-hop-for-resp 
+!
+slb virtual-server vip_172_31_6_53 172.31.6.53 
+  user-tag vip_172_31_6_53_dns 
+  port 53 dns-tcp 
+    syn-cookie 
+    source-nat pool 10_1_30_SNAT 
+    service-group vip_172_31_6_53_53_tcp_sg_dns 
+    template dns dns_templ_vip_172_31_6_53_53_dns_tcp_dns 
+    template persist source-ip persist_template_vip_172_31_6_53_53_dns_tcp_dns 
+    user-tag vip_172_31_6_53_port_53_dns_tcp_dns 
+    sampling-enable total_req 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+  port 53 dns-udp 
+    source-nat pool 10_1_30_SNAT 
+    service-group vip_172_31_6_53_53_udp_sg_dns 
+    template dns dns_templ_vip_172_31_6_53_53_dns_udp_dns 
+    template persist source-ip persist_template_vip_172_31_6_53_53_dns_udp_dns 
+    user-tag vip_172_31_6_53_port_53_dns_udp_dns 
+    sampling-enable total_req 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+!
+slb virtual-server vip_MINT01 172.31.6.161 /32 
+  port 22 tcp 
+    name vp_SSH 
+    extended-stats 
+    source-nat auto 
+    service-group sg_MINT01 
+  port 80 http 
+    name vp_MINT01_80 
+    extended-stats 
+    source-nat auto 
+    service-group sg_MINT01 
+  port 443 https 
+    name vp_HTTPS_443 
+    extended-stats 
+    source-nat auto 
+    service-group sg_MINT01 
+    template client-ssl CLIENT-SSL-CERT 
+!
+slb virtual-server vip_WIN2012 172.31.6.180 /32 
+  port 53 dns-udp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_DNS_UDP 
+    use-rcv-hop-for-resp 
+  port 53 dns-tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_DNS_TCP 
+    use-rcv-hop-for-resp 
+  port 80 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_WEB_80 
+    aaa-policy FBA-POLICY 
+  port 443 https 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_WEB_443 
+    template server-ssl t_ssl_Server_Test 
+    template client-ssl CLIENT-SSL-CERT 
+  port 5353 dns-tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group sg_WIN2012_5353_TCP 
+    use-rcv-hop-for-resp 
+!
+logging email-address admin@domain.me 
+!
+logging syslog information 
+!
+logging trap emergency 
+!
+logging host 192.168.0.182 use-mgmt-port 
+!
+logging host 192.168.0.29 use-mgmt-port 
+!
+logging buffered 31000 
+!
+gslb system auto-map ttl 10 
+no gslb system geo-location load iana 
+!
+gslb dns logging both 
+!
+gslb geo-location ASIA 
+  ip 146.56.0.0 mask 255.255.0.0 
+!
+gslb geo-location AUSTRALIA 
+  ip 146.11.0.0 mask 255.255.0.0 
+!
+gslb geo-location Anywhere 
+  ip 0.0.0.0 mask 0.0.0.0 
+!
+gslb geo-location EUROPE 
+  ip 146.50.0.0 mask 255.255.0.0 
+!
+gslb geo-location N_AMERICA 
+  ip 146.68.0.0 mask 255.255.0.0 
+!
+gslb geo-location S_AMERICA 
+  ip 146.134.0.0 mask 255.255.0.0 
+!
+gslb protocol status-interval 30 
+!
+gslb protocol enable controller 
+!
+gslb protocol enable device 
+!
+device-context 1
+  router ipv6 ospf 1 
+    passive-interface loopback 1 
+    router-id 172.31.6.2 
+    redistribute static metric 5 metric-type 1 
+    redistribute connected 
+!
+device-context 2
+  router ipv6 ospf 1 
+    passive-interface loopback 1 
+    router-id 172.31.6.3 
+    redistribute floating-ip 
+    redistribute static metric 5 metric-type 1 
+    redistribute connected 
+!
+device-context 1
+  router ospf 10 
+    auto-cost reference-bandwidth 1000 
+    bfd all-interfaces 
+    distribute-internal vip area 0.0.0.1 cost 10 
+    ha-standby-extra-cost 30 
+    log-adjacency-changes detail 
+    network 172.31.0.0/16 area 0.0.0.1 
+    router-id 172.31.6.2 
+    timers spf exp 30000 50000 
+!
+device-context 2
+  router ospf 10 
+    auto-cost reference-bandwidth 1000 
+    bfd all-interfaces 
+    distribute-internal vip area 0.0.0.1 cost 10 
+    ha-standby-extra-cost 30 
+    log-adjacency-changes detail 
+    network 172.31.6.0/24 area 0.0.0.1 
+    router-id 172.31.6.3 
+    timers spf exp 30000 50000 
+!
+sflow setting packet-sampling-rate 100 
+sflow setting counter-polling-interval 10 
+!
+device-context 1
+  sflow sampling ve 3
+!
+snmp-server enable service 
+!
+device-context 1
+  snmp-server location San_Diego 
+!
+snmp-server enable traps all 
+!
+snmp-server enable traps gslb all 
+!
+rba enable 
+!
+rba role testRole1 
+  waf write 
+  slb write 
+  gslb write 
+!
+rba role testRole2 
+  waf read 
+  slb read 
+  gslb read 
+!
+rba role testRole3 
+  gslb no-access 
+  slb no-access 
+  waf no-access 
+!
+rba user test 
+  partition DMZ 
+    role testRole1 
+  partition DMZII 
+  partition shared 
+    root no-access 
+!
+rba user testADMINS 
+  partition DMZ 
+    role testRole1 
+  partition DMZII 
+    root no-access 
+  partition shared 
+    root no-access 
+!
+rba user testUser1 
+  partition DMZ 
+    role testRole1 
+  partition DMZII 
+  partition shared 
+    root no-access 
+!
+rba user testUser10 
+  partition DMZ 
+    role testRole1 
+  partition DMZII 
+    role testRole3 
+  partition shared 
+    root no-access 
+!
+rba user testUser2 
+  partition DMZ 
+    role testRole2 
+  partition shared 
+    root no-access 
+!
+rba group testGroup1 
+  partition DMZ 
+    waf write 
+    partition write 
+    slb write 
+  partition shared 
+    root no-access 
+!
+object-group network WEB_CLIENTS 
+  10.1.1.0 0.0.0.255 
+!
+object-group network WEB_SERVERS 
+  20.1.1.0 0.0.0.255 
+!
+object-group service WEB_SERVICE 
+  tcp eq 80 
+!
+end
+!Current config commit point for partition 0 is 0 & config mode is classical-mode
+!Current configuration: 853 bytes       
+!Configuration last updated at 13:46:34 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition DMZ
+!
+!
+class-list CL_CLASS_LIST 
+  172.31.5.200/32 
+!
+vlan 1/100 
+  untagged ethernet 1
+  router-interface ve 100 
+  name "br100 -> vMX02|em6" 
+!
+vlan 2/100 
+  untagged ethernet 1
+  router-interface ve 100 
+  name "br100 -> vMX02|em6" 
+!
+device-context 1
+  bfd enable 
+!
+device-context 2
+  bfd enable 
+!
+interface ethernet 1/1 
+  name "br100 -> vMX02|em6" 
+  enable 
+!
+interface ethernet 2/1 
+  name "br100 -> vMX02|em6" 
+  enable 
+!
+interface ve 1/100 
+  ip address 172.31.5.2 255.255.255.0 
+  ip igmp generate-membership-query 10 max-resp-time 60 
+  bfd interval 300 min-rx 300 multiplier 3 
+!
+interface ve 2/100 
+  ip address 172.31.5.3 255.255.255.0 
+  ip igmp generate-membership-query 10 max-resp-time 60 
+  bfd interval 300 min-rx 300 multiplier 3 
+!
+vrrp-a vrid 0 
+  floating-ip 172.31.5.1 
+  floating-ip 172.31.5.21 
+  device-context 1
+    blade-parameters 
+      priority 200 
+      tracking-options 
+        interface ethernet 1 priority-cost 100 
+  device-context 2
+    blade-parameters 
+      priority 210 
+      tracking-options 
+        interface ethernet 1 priority-cost 100 
+!
+device-context 1
+  ip route 0.0.0.0 /0 172.31.5.254 
+!
+device-context 2
+  ip route 0.0.0.0 /0 172.31.5.254 
+!
+slb common 
+  extended-stats 
+!
+health monitor DNS-UDP 
+  method dns domain adc1.mydomain.local port 53 type A 
+!
+health monitor GATEWAY 
+  override-ipv4 1.1.1.1 
+!
+slb template server CONN_LIMIT_TMP 
+  conn-limit 5 
+!
+slb template server-ssl OWA-SERVER-SIDE 
+!
+slb server DUMMY_SVR 10.10.10.10 
+  health-check-disable 
+  port 53 udp 
+    health-check-disable 
+  port 53 tcp 
+    health-check-disable 
+  port 80 tcp 
+    health-check-disable 
+!
+slb server UBUNTU-NS01 172.31.5.53 
+  disable 
+  port 53 tcp 
+  port 53 udp 
+    health-check DNS-UDP 
+!
+slb service-group DNS_53_TCP tcp 
+  member UBUNTU-NS01 53 
+!
+slb service-group DNS_53_UDP udp 
+  member UBUNTU-NS01 53 
+!
+slb service-group WEB_80_HTTP tcp 
+  member DUMMY_SVR 80 
+!
+slb template client-ssl TP_CLIENT_SSL 
+!
+slb template dns DNS_FIREWALL 
+  default-policy cache 
+  malformed-query drop 
+!
+slb template policy CONN_LIMIT_POLICY 
+  class-list CL_CLASS_LIST 
+    lid 1 
+      conn-limit 5 
+      over-limit-action reset 
+!
+slb virtual-server GSLB_DNS 172.31.5.153 
+  description GSLB VIP for DNS queries
+  redistribution-flagged 
+  extended-stats 
+  port 53 dns-tcp 
+    gslb-enable 
+  port 53 dns-udp 
+    conn-limit 8000000 reset 
+    gslb-enable 
+!
+logging trap critical 
+!
+gslb service-ip adc1 172.31.5.153 
+  port 53 tcp 
+    health-check-protocol-disable 
+    health-check-disable 
+!
+gslb service-ip adc2 172.31.15.153 
+  port 53 tcp 
+    health-check-protocol-disable 
+    health-check-disable 
+!
+gslb service-ip WWW-VIP-HQ-SHARED 172.31.6.80 
+  port 443 tcp 
+!
+gslb service-ip WWW-VIP-DR-SHARED 172.31.6.80 
+  port 443 tcp 
+!
+gslb service-ip EXCHANGE-VIP-HQ-SHARED 172.31.6.5 
+  port 443 tcp 
+!
+gslb service-ip EXCHANGE-VIP-DR-SHARED 172.31.6.5 
+  port 443 tcp 
+!
+gslb service-ip WEB-BADSTORE 172.31.6.83 
+  health-check-protocol-disable 
+  port 80 tcp 
+!
+gslb service-ip WebGoat 172.31.6.81 
+  health-check-protocol-disable 
+  health-check-disable 
+  port 8080 tcp 
+    health-check-protocol-disable 
+    health-check-disable 
+!
+gslb service-ip domain-VIP-HQ-SHARED 172.31.6.64 
+  port 443 tcp 
+!
+gslb service-ip domain-VIP-DR-SHARED 172.31.6.64 
+  port 443 tcp 
+!
+gslb group default 
+  enable 
+  primary 172.31.15.21 
+  priority 175 
+!
+gslb site EXT-HQ 
+  ip-server WEB-BADSTORE 
+  slb-dev TH3030S-HQ 172.31.5.21 
+    admin-preference 200 
+    vip-server adc1 
+    vip-server WWW-VIP-HQ-SHARED 
+    vip-server EXCHANGE-VIP-HQ-SHARED 
+    vip-server domain-VIP-HQ-SHARED 
+!
+gslb site EXT-DR 
+  slb-dev TH3030S-DR 172.31.15.21 
+    admin-preference 150 
+    vip-server adc2 
+    vip-server WWW-VIP-DR-SHARED 
+    vip-server EXCHANGE-VIP-DR-SHARED 
+    vip-server domain-VIP-DR-SHARED 
+    vip-server WebGoat 
+!
+gslb site AZURE-DR 
+  slb-dev vThunderAzure 104.210.45.241 
+    admin-preference 175 
+!
+gslb policy GSLB-POLICY 
+  no geographic 
+  no round-robin 
+  metric-force-check 
+  metric-order health-check weighted-ip admin-preference 
+  dns selected-only 
+  dns logging both 
+  dns server any authoritative 
+!
+gslb zone gslb.domain.me 
+  policy GSLB-POLICY 
+  dns-soa-record ns01.domain.me admin.domain.me expire 604800 refresh 2880 retry 7200 serial 201712261 ttl 120 
+  dns-mx-record mail.domain.me 10 
+  dns-mx-record smtp.domain.me 20 
+  dns-ns-record ubuntu-ns01.domain.me 
+  service 8001 test1 
+    policy GSLB-POLICY 
+  service 443 test2 
+    dns-a-record domain-VIP-DR-SHARED as-backup weight 99 ttl 5 static 
+    dns-a-record domain-VIP-HQ-SHARED weight 100 ttl 5 static 
+  service 443 test3 
+    dns-a-record domain-VIP-DR-SHARED as-backup weight 99 ttl 5 static 
+    dns-a-record domain-VIP-HQ-SHARED weight 100 ttl 5 static 
+  service 8080 webgoat 
+    action forward both 
+    dns-a-record WebGoat weight 100 ttl 5 static 
+  service 0 client01 
+    health-check-port 443 
+  service 0 client02 
+  service 80 client03 
+!
+device-context 1
+  router bgp 65002 
+    bgp router-id 172.31.5.2 
+    network 172.31.5.0/24 
+    neighbor 172.31.5.254 remote-as 65001 
+    neighbor 172.31.5.254 fall-over bfd 
+    redistribute vip only-flagged 
+!
+device-context 2
+  router bgp 65003 
+    bgp router-id 172.31.5.3 
+    network 172.31.5.0/24 
+    neighbor 172.31.5.254 remote-as 65001 
+    neighbor 172.31.5.254 fall-over bfd 
+    redistribute vip only-flagged 
+!
+end
+!Current config commit point for partition 1 is 0 & config mode is classical-mode
+!Current configuration: 0 bytes         
+!Configuration last updated at 13:46:34 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition DMZII
+!
+!
+!
+end
+!Current config commit point for partition 2 is 0 & config mode is classical-mode
+!Current configuration: 0 bytes         
+!Configuration last updated at 13:46:34 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition EXP-PROXY
+!
+!
+!
+end
+!Current config commit point for partition 3 is 0 & config mode is classical-mode
+!Current configuration: 1479 bytes      
+!Configuration last updated at 13:46:34 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition CGN_FixedNat
+!
+!
+vlan 1/32 
+  untagged ethernet 5
+  router-interface ve 32 
+!
+vlan 2/32 
+  untagged ethernet 5
+  router-interface ve 32 
+!
+interface ethernet 1/5 
+  enable 
+!
+interface ethernet 1/6 
+  enable 
+  ip address 10.1.51.2 255.255.255.0 
+  ip nat outside 
+!
+interface ethernet 2/5 
+  enable 
+!
+interface ethernet 2/6 
+  enable 
+  ip address 10.1.51.3 255.255.255.0 
+  ip nat outside 
+!
+interface ve 1/32 
+  ip address 172.31.50.2 255.255.255.0 
+  ip nat inside 
+!
+interface ve 2/32 
+  ip address 172.31.50.3 255.255.255.0 
+  ip nat inside 
+!
+!
+vrrp-a vrid 1 
+  floating-ip 172.31.50.1 
+  floating-ip 10.1.51.1 
+  follow vrid-lead AX1 
+!
+device-context 1
+  ip route 0.0.0.0 /0 172.31.50.254 
+!
+device-context 2
+  ip route 0.0.0.0 /0 172.31.50.254 
+!
+ip-list FIXED-NAT-INSIDE-CUSTOMER01 
+  10.1.51.4 
+!
+ip-list FIXED-NAT-PUBLIC-CUSTOMER01 
+  172.31.50.100 
+!
+cgnv6 server SYSLOGGER01 10.40.1.182 
+  port 514 udp 
+!
+cgnv6 service-group sg_SYSLOG udp 
+  member SYSLOGGER01 514 
+!
+cgnv6 template logging LSN_LOG 
+  log http-requests url 
+  log sessions 
+  rule http-requests dest-port 80 
+  service-group sg_SYSLOG 
+!
+cgnv6 template logging SYSLOG_DEFAULT 
+  log fixed-nat port-mappings creation 
+  log fixed-nat user-ports periodic 1 start-time 0:0 
+  format custom 
+  batched-logging-disable 
+  service-group sg_SYSLOG 
+  custom message fixed-nat-allocated $src-ip$,$nat-ip$,$nat-port-start$,$nat-port-end$ 
+!
+cgnv6 lsn alg esp enable 
+!
+cgnv6 lsn alg sip enable 
+!
+cgnv6 lsn alg tftp enable 
+!
+cgnv6 lsn endpoint-independent-mapping tcp 
+  port 1 to 65535 
+!
+cgnv6 lsn endpoint-independent-mapping udp 
+  port 1 to 65535 
+!
+cgnv6 lsn endpoint-independent-filtering tcp 
+  port 1 to 65535 
+!
+cgnv6 lsn endpoint-independent-filtering udp 
+  port 1 to 65535 
+!
+cgnv6 lsn stun-timeout tcp port 1 to 65535 5 
+!
+cgnv6 lsn stun-timeout udp port 1 to 65535 5 
+!
+cgnv6 nat icmp respond-to-ping 
+!
+cgnv6 nat range-list PLANE01 172.31.50.100 255.255.255.255 10.1.51.100 255.255.255.255 count 1 
+!
+cgnv6 fixed-nat create-port-mapping-file 
+!
+device-context 1
+  router bgp 65102 
+    bgp router-id 172.31.50.2 
+    network 172.31.50.0/24 
+    neighbor 172.31.5.254 remote-as 65101 
+    neighbor 172.31.5.254 fall-over bfd 
+    redistribute ip-nat route-map NAT_REDISTRIBUTION 
+    redistribute vip only-flagged 
+!
+device-context 1
+  route-map NAT_REDITRIBUTION permit 1 
+!
+end
+!Current config commit point for partition 5 is 0 & config mode is classical-mode
+Done
+
+
+
+******************************************************************************************************
+***************************CURRENT STARTUP CONFIGURATION FOR ALL PARTITIONS***************************
+vThunder02-Active-affinity-def-vMaster[5/2](config:2)#show startup-config all-partitions
+Show configuration profile in all-partitions:
+Building configuration...
+
+!Current configuration: 48499 bytes
+!Configuration last updated at 13:46:28 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!64-bit Advanced Core OS (ACOS) version 4.1.2-P2, build 68 (Aug-23-2017,17:44)
+!
+vrrp-a common 
+  device-id 2 
+  set-id 5 
+  enable 
+  exit-module
+!
+vcs enable
+!
+device-context 1
+  vcs enable 
+!
+device-context 2
+  vcs enable 
+!
+vcs floating-ip 192.168.0.155 255.255.255.0 
+vcs multicast-ip 224.0.0.11 
+!
+vcs device 1 
+  priority 155 
+  interfaces management 
+  affinity-vrrp-a-vrid 0 
+  enable 
+  exit-module
+!
+vcs device 2 
+  priority 145 
+  interfaces management 
+  affinity-vrrp-a-vrid 0 
+  enable 
+  exit-module
+!
+object-group network WEB_CLIENTS 
+  exit-module
+!
+object-group network WEB_SERVERS 
+  exit-module
+!
+object-group service WEB_SERVICE 
+  exit-module
+!
+access-list 101 remark INT_CLIENT_ACL 
+!
+access-list 101 remark "Another remark at seq 5" 
+!
+access-list 101 remark "Another remark at seq 6" 
+!
+access-list 101 deny icmp type any-type code any-code any any 
+!
+access-list 101 deny ip host 10.1.30.1 host 10.1.30.150 log 
+!
+access-list 101 permit ip 10.1.30.0 0.0.0.255 any 
+!
+access-list 101 remark DENY_ALL 
+!
+access-list 101 deny ip any any 
+!
+access-list 102 remark ALLOW_ANY 
+!
+access-list 102 permit ip any any log 
+!
+authentication type ldap local 
+!
+ldap-server host 192.168.0.5 cn cn dn OU=testA10,DC=domain,DC=com 
+!
+multi-config enable 
+!
+!
+system resource-usage auth-portal-image-file-size 80 
+!
+no terminal auto-size 
+terminal idle-timeout 0 
+terminal length 57 
+terminal width 175 
+!
+class-list ALLOW_SUBNETS ipv4 
+  1.1.1.0/24 
+  exit-module
+!
+class-list CL_CLASS_LIST 
+  172.31.6.200/32 
+  exit-module
+!
+class-list HTTP ac 
+  starts-with http:// 
+  exit-module
+!
+class-list act_internet_dns 
+  0.0.0.0/0 lid 1 
+  exit-module
+!
+ip access-list ALLOW_SUBNETS 
+  permit ip 172.31.5.0 0.0.0.255 any fragments vlan 3 log 
+  exit-module
+!
+ip anomaly-drop drop-all 
+ip anomaly-drop land-attack 
+!
+ip dns primary 192.168.0.8 
+!
+ip dns secondary 192.168.0.5 
+!
+device-context 1
+  ip prefix-list VIP seq 10 deny 64.183.6.80/32 
+!
+vlan 1/3 
+  untagged ethernet 3
+  router-interface ve 3 
+  name "br3 -> vMX02|em4" 
+  exit-module
+!
+vlan 1/30 
+  untagged ethernet 2
+  router-interface ve 30 
+  name "VLAN30 - SERVERS" 
+  exit-module
+!
+vlan 2/3 
+  untagged ethernet 3
+  router-interface ve 3 
+  name "br3 -> vMX02|em4" 
+  exit-module
+!
+vlan 2/30 
+  untagged ethernet 2
+  router-interface ve 30 
+  name "VLAN30 - SERVERS" 
+  exit-module
+!
+partition DMZ id 1 application-type adc 
+  exit-module
+!
+partition DMZII id 2 application-type adc 
+  exit-module
+!
+partition EXP-PROXY id 3 application-type adc 
+  exit-module
+!
+partition CGN_FixedNat id 5 application-type cgnv6 
+  exit-module
+!
+vrrp-a vrid-lead default-vrid-lead 
+  partition shared vrid 0 
+  exit-module
+!
+vrrp-a vrid-lead AX1 
+  partition DMZ vrid 0 
+  exit-module
+!
+device-context 1
+  lacp system-priority 32000 
+!
+device-context 2
+  lacp system-priority 32000 
+!
+lldp enable rx tx 
+!
+device-context 1
+  bfd enable 
+!
+device-context 2
+  bfd enable 
+  bfd interval 300 min-rx 300 multiplier 3 
+!
+device-context 1
+  ipv6 ospf display route single-line 
+!
+device-context 2
+  ipv6 ospf display route single-line 
+!
+device-context 1
+  hostname vThunder01 
+!
+device-context 2
+  hostname vThunder02 
+!
+ntp server time.google.com 
+  prefer 
+  exit-module
+!
+ntp server time.nist.gov 
+  exit-module
+!
+device-context 1
+  interface management 
+    ip address 192.168.0.151 255.255.255.0 
+    ip control-apps-use-mgmt-port 
+    ip default-gateway 192.168.0.3 
+    exit-module
+!
+device-context 2
+  interface management 
+    ip address 192.168.0.152 255.255.255.0 
+    ip control-apps-use-mgmt-port 
+    ip default-gateway 192.168.0.3 
+    exit-module
+!
+interface ethernet 1/1 
+  exit-module
+!
+interface ethernet 1/2 
+  enable 
+  lldp enable rx tx 
+  lldp notification enable 
+  exit-module
+!
+interface ethernet 1/3 
+  enable 
+  lldp enable rx tx 
+  lldp notification enable 
+  exit-module
+!
+interface ethernet 1/4 
+  enable 
+  trunk-group 16 lacp 
+    exit-module
+  exit-module
+!
+interface ethernet 1/5 
+  exit-module
+!
+interface ethernet 1/6 
+  exit-module
+!
+interface ethernet 2/1 
+  exit-module
+!
+interface ethernet 2/2 
+  enable 
+  lldp enable rx tx 
+  exit-module
+!
+interface ethernet 2/3 
+  enable 
+  lldp enable rx tx 
+  lldp notification enable 
+  exit-module
+!
+interface ethernet 2/4 
+  enable 
+  trunk-group 15 lacp 
+    exit-module
+  exit-module
+!
+interface ethernet 2/5 
+  exit-module
+!
+interface ethernet 2/6 
+  exit-module
+!
+interface trunk 1/16 
+  name TRUNK16 
+  icmp-rate-limit 1000 
+  icmpv6-rate-limit 1000 
+  ip address 10.1.32.2 255.255.255.0 
+  ipv6 address 2600:8801:9600:500::2/64 
+  ipv6 enable 
+  exit-module
+!
+interface ve 1/3 
+  ip address 172.31.6.2 255.255.255.0 
+  ip ospf bfd 
+  ip ospf cost 15 
+  ipv6 address 2600:8801:9600:410::2/64 
+  ipv6 enable 
+  ipv6 router ospf area 0 tag 1 
+  ipv6 ospf bfd 
+  exit-module
+!
+interface ve 1/30 
+  ip address 10.1.30.250 255.255.255.0 
+  ipv6 address 2600:8801:9600:430::2/64 
+  exit-module
+!
+interface ve 2/3 
+  ip address 172.31.6.3 255.255.255.0 
+  ip ospf bfd 
+  ip ospf cost 15 
+  ipv6 address 2600:8801:9600:410::3/64 
+  ipv6 enable 
+  ipv6 router ospf area 0 tag 1 
+  ipv6 ospf bfd 
+  exit-module
+!
+interface ve 2/30 
+  ip address 10.1.30.251 255.255.255.0 
+  ipv6 address 2600:8801:9600:430::3/64 
+  exit-module
+!
+interface loopback 1/1 
+  ipv6 address 2600:8801:9600:1000::1/128 
+  ipv6 enable 
+  ipv6 router ospf area 0 
+  exit-module
+!
+interface loopback 2/1 
+  ipv6 address 2600:8801:9600:1000::2/128 
+  ipv6 enable 
+  ipv6 router ospf area 0 
+  exit-module
+!
+vrrp-a vrid 0 
+  floating-ip 172.31.6.1 
+  floating-ip 10.1.30.254 
+  floating-ip 172.31.19.1 
+  floating-ip 2600:8801:9600:410::1 
+  floating-ip 2600:8801:9600:430::1 
+  floating-ip 2600:8801:9600:430::4 
+  device-context 1
+    blade-parameters 
+      priority 155 
+      exit-module
+  device-context 2
+    blade-parameters 
+      priority 195 
+      tracking-options 
+        interface ethernet 2 priority-cost 50 
+        interface ethernet 3 priority-cost 50 
+        exit-module
+      exit-module
+  exit-module
+!
+ip nat pool 10_1_30_SNAT 10.1.30.88 10.1.30.88 netmask /24 
+!
+ip nat pool INT_MINT02_SNAT 10.1.30.102 10.1.30.102 netmask /24 
+!
+ip nat pool NEW_SUBNET 172.31.19.50 172.31.19.50 netmask /24 
+!
+ip nat pool-group SNAT 
+  member 10_1_30_SNAT 
+  exit-module
+!
+ip nat icmp respond-to-ping 
+!
+ipv6 nat pool v6_SNAT 2600:8801:9600:430::100 2600:8801:9600:430::100 netmask 64 
+!
+vrrp-a interface ethernet 1/3 
+  exit-module
+!
+vrrp-a interface ethernet 2/3 
+  exit-module
+!
+device-context 1
+  ip mgmt-traffic all source-interface loopback 0 
+!
+device-context 2
+  ip mgmt-traffic all source-interface loopback 0 
+!
+device-context 1
+  ip route 0.0.0.0 /0 172.31.6.254 
+!
+device-context 1
+  ip route 192.168.200.0 /24 192.168.0.3 
+!
+device-context 2
+  ip route 0.0.0.0 /0 172.31.6.254 
+!
+device-context 2
+  ip route 192.168.200.0 /24 192.168.0.3 
+!
+device-context 1
+  ipv6 route ::/0 2600:8801:9600:410::122 
+!
+device-context 2
+  ipv6 route ::/0 2600:8801:9600:410::122 
+!
+aam authentication global sampling-enable misses 
+aam authentication global sampling-enable connect-failed 
+aam authentication global sampling-enable aflex-authz-fail 
+aam authentication global sampling-enable get-socket-option-failed 
+aam authentication global sampling-enable create-timer-failed 
+!
+aam authentication portal default-portal 
+  logo def_logo.png 
+  user-tag act_fba_FBA-POLICY_default-portal 
+  exit-module
+!
+aam authentication logon http-authenticate WIA-POLICY_wia_logon 
+  auth-method negotiate enable 
+  exit-module
+!
+aam authentication logon http-authenticate ntlm_wia_logon 
+  auth-method ntlm enable 
+  exit-module
+!
+aam authentication logon form-based FBA-POLICY_default-portal 
+  portal default-portal 
+  user-tag act_fba_FBA-POLICY_default-portal 
+  exit-module
+!
+aam authentication logon form-based FBA-POLICY_logon.zip 
+  portal logon.zip logon logon.html failpage fail.html changepasswordpage change.html 
+  action-url /logon.fo 
+  username-variable user 
+  password-variable pwd 
+  changepassword-url /change.fo 
+  changepassword-username-variable cp_usr 
+  changepassword-old-password-variable cp_old_pwd 
+  changepassword-new-password-variable cp_new_pwd 
+  changepassword-password-confirm-variable cp_cfm_pwd 
+  user-tag act_fba_FBA-POLICY_logon.zip 
+  exit-module
+!
+!
+!
+aam authentication log enable 
+!
+aam authentication account sampling-enable all 
+!
+aam authentication account kerberos-spn WIA-POLICY_wia_kbr_account 
+  realm domain.me 
+  account "wia admin" 
+  service-principal-name HTTP/web-vip-hq.domain.me 
+  password encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  exit-module
+!
+aam authentication saml service-provider OKTA_SP 
+  artifact-resolution-service index 0 location /app/activisionblizzardsandbox_blizzardmama10_1/ binding soap 
+  assertion-consuming-service index 0 location /api/SsoAuthLoginResponse binding post 
+  single-logout-service location /app/activisionblizzardsandbox_blizzardmama10_1/ binding post 
+  entity-id http://10.131.85.50 
+  saml-request-signed disable 
+  service-url http://10.131.85.50 
+  exit-module
+!
+aam authentication saml identity-provider OKTA_IDP 
+  metadata A10_OKTA_3 
+  exit-module
+!
+aam authentication saml identity-provider NEW_OKTA_IDP 
+  metadata a10_v2 
+  exit-module
+!
+slb common 
+  extended-stats 
+  graceful-shutdown 30 server after-disable 
+  rate-limit-logging max-remote-rate 2000 exclude-destination local 
+  enable-l7-req-acct 
+  drop-icmp-to-vip-when-vip-down 
+  exit-module
+!
+slb resource-usage virtual-server-count 128 
+!
+health global 
+  multi-process 2 
+  exit-module
+!
+health monitor HM-HTTP-80 
+  exit-module
+!
+health monitor HM-HTTPS-443 
+  exit-module
+!
+health monitor HM-SYSLOG-514 
+  exit-module
+!
+health monitor HM-SSL-VPN 
+  exit-module
+!
+health monitor HM-GOOGLE 
+  exit-module
+!
+health monitor HM-GOOGLE-443 
+  exit-module
+!
+health monitor HM-HTTP-8080 
+  exit-module
+!
+health monitor FTP_HM 
+  exit-module
+!
+health monitor HM_PORT_1120 
+  exit-module
+!
+health monitor HM_PORT_1121 
+  exit-module
+!
+health monitor Hm_act_vip_64_183_5_30_80 
+  exit-module
+!
+health monitor Hm_undefined_80 
+  exit-module
+!
+health monitor WIN2K8 
+  exit-module
+!
+health monitor hm_HTTPS_8443 
+  exit-module
+!
+health monitor HM-DNS-53 
+  exit-module
+!
+health monitor HM_STR_CHK 
+  exit-module
+!
+health monitor HM_HTTP_PROBE 
+  exit-module
+!
+health monitor HM_HTTP_RC_200 
+  exit-module
+!
+health monitor HM_COMPOUND_HTTP 
+  exit-module
+!
+health monitor HM_HASH_HTTP_MD5 
+  exit-module
+!
+health monitor Mysql_3306 
+  exit-module
+!
+health monitor HM-HTTP-81 
+  exit-module
+!
+health monitor Hm_vip_172_31_6_53_53_tcp_dns 
+  exit-module
+!
+health monitor Hm_vip_172_31_6_53_53_udp_dns 
+  exit-module
+!
+health monitor domain 
+  exit-module
+!
+health monitor AUBURN 
+  exit-module
+!
+health monitor HM_PROXY_PROTOCOL 
+  exit-module
+!
+health monitor FAST-PING 
+  exit-module
+!
+health monitor hm_RTSP 
+  exit-module
+!
+health monitor hm_FTP_2121 
+  exit-module
+!
+health monitor HM-HTTP-80 
+  method http port 80 expect response-code 200 url GET / 
+  exit-module
+!
+health monitor HM-HTTPS-443 
+  override-port 443 
+  exit-module
+!
+health monitor HM-SYSLOG-514 
+  override-port 514 
+  exit-module
+!
+health monitor HM-SSL-VPN 
+  interval 16 timeout 16 
+  method http port 443 url GET "/dana-na/healthcheck/healthcheck.cgi HTTP/1.1\\\\r\\\\n\\\\r\\\\n" 
+  exit-module
+!
+health monitor HM-GOOGLE 
+  override-port 80 
+  method http expect response-code 200 host www.google.com 
+  exit-module
+!
+health monitor HM-GOOGLE-443 
+  method https port 443 host www.google.com 
+  exit-module
+!
+health monitor HM-HTTP-8080 
+  override-port 8080 
+  exit-module
+!
+health monitor FTP_HM 
+  method ftp username ftp1 password encrypted kWxrifEqM/uOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  exit-module
+!
+health monitor HM_PORT_1120 
+  exit-module
+!
+health monitor HM_PORT_1121 
+  exit-module
+!
+health monitor Hm_act_vip_64_183_5_30_80 
+  interval 10 
+  user-tag uiext_l4_slb_act_vip_64_183_5_30_HM 
+  exit-module
+!
+health monitor Hm_undefined_80 
+  interval 10 
+  user-tag uiext_l4_slb_undefined_HM 
+  exit-module
+!
+health monitor WIN2K8 
+  ssl-ciphers DEFAULT:!EXP:!SSLv2:!DES:!IDEA:!SEED:!SSLv3 
+  method https expect SSLi host win2k8.domain.me url GET /ssli.local/ cert WIN2K8 key WIN2K8 key-pass-phrase encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  exit-module
+!
+health monitor hm_HTTPS_8443 
+  ssl-ciphers DEFAULT:!EXP:!SSLv2:!DES:!IDEA:!SEED:!SSLv3 
+  method https port 8443 
+  exit-module
+!
+health monitor HM-DNS-53 
+  method dns domain domain.me tcp 
+  exit-module
+!
+health monitor HM_STR_CHK 
+  method http port 80 expect OK 
+  exit-module
+!
+health monitor HM_HTTP_PROBE 
+  method http port 80 expect probe url GET /probe.html 
+  exit-module
+!
+health monitor HM_HTTP_RC_200 
+  method http port 80 expect response-code 200 url GET /probe.html 
+  exit-module
+!
+health monitor HM_COMPOUND_HTTP 
+  method compound sub HM_HTTP_PROBE sub HM_HTTP_RC_200 and 
+  exit-module
+!
+health monitor HM_HASH_HTTP_MD5 
+  method external program HM_HASH_HTTP port 80 arguments "'probe.html' 'http' '59b74da70ae9efa34bbabeec15d3f7bb'" 
+  exit-module
+!
+health monitor Mysql_3306 
+  override-port 3306 
+  method database mysql db-name a10check username viphealth password encrypted 37O48xvi8uY8EIy41dsA5zwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  exit-module
+!
+health monitor HM-HTTP-81 
+  method http port 81 expect response-code 200 url GET / 
+  exit-module
+!
+health monitor Hm_vip_172_31_6_53_53_tcp_dns 
+  user-tag Hm_vip_172_31_6_53_53_tcp_dns 
+  method dns domain www.domain.me expect response-code 0 recurse enabled tcp type A 
+  exit-module
+!
+health monitor Hm_vip_172_31_6_53_53_udp_dns 
+  user-tag Hm_vip_172_31_6_53_53_udp_dns 
+  method dns domain www.domain.me expect response-code 0 type A 
+  exit-module
+!
+health monitor domain 
+  method http port 80 expect domain host www123.domain.me url GET /probe.html 
+  exit-module
+!
+health monitor AUBURN 
+  method http port 80 expect auburn host www123.auburn.me url GET /probe.html 
+  exit-module
+!
+health monitor HM_PROXY_PROTOCOL 
+  method external program HM_PROXY_PROTOCOL port 8080 
+  exit-module
+!
+health monitor FAST-PING 
+  exit-module
+!
+health monitor hm_RTSP 
+  method rtsp rtspurl /URL_string 
+  exit-module
+!
+health monitor hm_FTP_2121 
+  retry 10 
+  interval 30 timeout 15 
+  method ftp port 2121 username admin password encrypted 37O48xvi8uY8EIy41dsA5zwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  exit-module
+!
+aam authentication server ldap WIA-POLICY_wia_ldap_server 
+  host 192.168.0.64 
+  base CN=Users,DC=domain,DC=com 
+  admin-dn "CN=wia admin,CN=Users,DC=domain,DC=com" 
+  admin-secret encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  derive-bind-dn username-attr sAMAccountName 
+  exit-module
+!
+aam authentication server ldap act_fba_FBA-POLICY_authoi_ldap_server 
+  host 192.168.0.64 
+  base CN=Users,DC=domain,DC=com 
+  admin-dn "CN=wia admin,CN=Users,DC=domain,DC=com" 
+  admin-secret encrypted cTLA4T3f/1eOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  default-domain domain.me 
+  derive-bind-dn username-attr sAMAccountName 
+  exit-module
+!
+aam authentication server ldap ntlm_wia_ldap_server 
+  host 192.168.0.64 
+  base CN=Users,DC=domain,DC=com 
+  admin-dn "CN=wia admin,CN=Users,DC=domain,DC=com" 
+  admin-secret encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  derive-bind-dn username-attr sAMAccountName 
+  exit-module
+!
+aam authentication server windows WIA-POLICY_wia_auth_server 
+  host 192.168.0.64 
+  auth-protocol ntlm-disable 
+  realm domain.me 
+  support-apacheds-kdc 
+  exit-module
+!
+aam authentication server windows act_fba_FBA-POLICY_ntlm_auth_server 
+  host 192.168.0.64 
+  auth-protocol kerberos-disable 
+  exit-module
+!
+aam authentication server windows ntlm_wia_auth_server 
+  host 192.168.0.64 
+  auth-protocol kerberos-disable 
+  exit-module
+!
+aam authentication template AUTH_SESSION_IP_BASED 
+  auth-sess-mode ip-based 
+  exit-module
+!
+aam authentication template OKTA_TEMPLATE 
+  type saml 
+  saml-sp OKTA_SP 
+  exit-module
+!
+aam authentication template WIA-POLICY_wia_kbr_templ 
+  logon WIA-POLICY_wia_logon 
+  server WIA-POLICY_wia_auth_server 
+  account WIA-POLICY_wia_kbr_account 
+  user-tag act_wia_WIA-POLICY_wia_kbr_templ 
+  exit-module
+!
+aam authentication template act_fba_FBA-POLICY_auth_template 
+  logon FBA-POLICY_default-portal 
+  server act_fba_FBA-POLICY_ntlm_auth_server 
+  user-tag act_fba_FBA-POLICY_auth_template 
+  exit-module
+!
+aam authentication template ntlm_wia_ntlm_templ 
+  logon ntlm_wia_logon 
+  server ntlm_wia_auth_server 
+  exit-module
+!
+aam authorization policy FBA-POLICY_authoi_policy_1 
+  server act_fba_FBA-POLICY_authoi_ldap_server 
+  user-tag act_fba_FBA-POLICY_authoi_policy_1 
+  exit-module
+!
+aam authorization policy FBA-POLICY_authoi_policy_2 
+  attribute-rule 1
+  server act_fba_FBA-POLICY_authoi_ldap_server 
+  user-tag act_fba_FBA-POLICY_authoi_policy_2 
+  attribute 1 memberOf attr-type string sub-string a10ADMINS
+  exit-module
+!
+aam authorization policy FBA-POLICY_authoi_policy_3 
+  server act_fba_FBA-POLICY_authoi_ldap_server 
+  user-tag act_fba_FBA-POLICY_authoi_policy_3 
+  exit-module
+!
+aam authorization policy SAML_TEST 
+  exit-module
+!
+aam authorization policy WIA-POLICY_wia_autho_policy_1 
+  server WIA-POLICY_wia_ldap_server 
+  user-tag act_wia_WIA-POLICY_wia_autho_policy_1 
+  exit-module
+!
+aam authorization policy WIA-POLICY_wia_autho_policy_2 
+  server WIA-POLICY_wia_ldap_server 
+  user-tag act_wia_WIA-POLICY_wia_autho_policy_2 
+  exit-module
+!
+aam authorization policy WIA-POLICY_wia_autho_policy_3 
+  server WIA-POLICY_wia_ldap_server 
+  user-tag act_wia_WIA-POLICY_wia_autho_policy_3 
+  exit-module
+!
+aam authorization policy ntlm_wia_autho_policy_1 
+  attribute-rule 1 or 2
+  server ntlm_wia_ldap_server 
+  attribute 1 memberOf attr-type string sub-string Administrators
+  attribute 2 memberOf attr-type string sub-string hr
+  exit-module
+!
+aam authorization policy ntlm_wia_autho_policy_2 
+  server ntlm_wia_ldap_server 
+  exit-module
+!
+aam authorization policy ntlm_wia_autho_policy_3 
+  server ntlm_wia_ldap_server 
+  exit-module
+!
+aam aaa-policy FBA-POLICY 
+  user-tag act_fba_FBA-POLICY 
+  aaa-rule 1 
+    action allow 
+    authentication-template act_fba_FBA-POLICY_auth_template 
+    user-tag act_fba_FBA-POLICY_authoi_policy_1 
+    exit-module
+  aaa-rule 2 
+    action allow 
+    authentication-template act_fba_FBA-POLICY_auth_template 
+    authorize-policy FBA-POLICY_authoi_policy_2 
+    user-tag act_fba_FBA-POLICY_authoi_policy_2 
+    exit-module
+  aaa-rule 3 
+    action allow 
+    authentication-template act_fba_FBA-POLICY_auth_template 
+    user-tag act_fba_FBA-POLICY_authoi_policy_3 
+    exit-module
+  exit-module
+!
+aam aaa-policy OKTA_POLICY 
+  aaa-rule 1 
+    action allow 
+    exit-module
+  exit-module
+!
+aam aaa-policy WIA-POLICY 
+  user-tag act_wia_WIA-POLICY 
+  aaa-rule 1 
+    action allow 
+    authentication-template WIA-POLICY_wia_kbr_templ 
+    user-tag WIA-POLICY_aaa_policy_rule_1 
+    exit-module
+  aaa-rule 2 
+    uri starts-with /public 
+    action allow 
+    user-tag WIA-POLICY_aaa_policy_rule_2 
+    exit-module
+  aaa-rule 3 
+    uri starts-with /private 
+    action allow 
+    authentication-template WIA-POLICY_wia_kbr_templ 
+    user-tag WIA-POLICY_aaa_policy_rule_3 
+    exit-module
+  exit-module
+!
+aam aaa-policy ntlm 
+  aaa-rule 1 
+    uri starts-with /private 
+    action allow 
+    authentication-template ntlm_wia_ntlm_templ 
+    authorize-policy ntlm_wia_autho_policy_1 
+    exit-module
+  aaa-rule 2 
+    uri starts-with /public 
+    action allow 
+    exit-module
+  aaa-rule 3 
+    action allow 
+    authentication-template ntlm_wia_ntlm_templ 
+    exit-module
+  exit-module
+!
+slb template cipher max_compatibility 
+  SSL3_RSA_DES_192_CBC3_SHA priority 36 
+  TLS1_RSA_AES_128_SHA priority 40 
+  TLS1_RSA_AES_256_SHA priority 38 
+  TLS1_ECDHE_RSA_AES_128_SHA priority 70 
+  TLS1_ECDHE_RSA_AES_256_SHA priority 64 
+  TLS1_RSA_AES_128_SHA256 priority 44 
+  TLS1_RSA_AES_256_SHA256 priority 42 
+  TLS1_ECDHE_RSA_AES_128_SHA256 priority 76 
+  TLS1_DHE_RSA_AES_128_SHA256 priority 62 
+  TLS1_DHE_RSA_AES_256_SHA256 priority 58 
+  exit-module
+!
+slb template cipher max_security 
+  TLS1_ECDHE_RSA_AES_128_SHA256 priority 72 
+  exit-module
+!
+slb template connection-reuse CONN-REUSE 
+  exit-module
+!
+slb template ftp FTP_TEMPLATE 
+  active-mode-port any 
+  exit-module
+!
+slb template persist cookie cookie_persist 
+  expire 0 
+  name a10_server 
+  match-type server 
+  exit-module
+!
+slb template persist source-ip source-ip-persistence 
+  hash-persist 
+  timeout 600 
+  match-type server 
+  exit-module
+!
+slb template persist source-ip undefined_persist_template_80 
+  user-tag uiext_l4_slb_undefined_persist_template_80 
+  exit-module
+!
+slb template persist source-ip persist_template_vip_172_31_6_53_53_dns_tcp_dns 
+  user-tag persist_template_vip_172_31_6_53_53_dns_tcp_dns 
+  exit-module
+!
+slb template persist source-ip persist_template_vip_172_31_6_53_53_dns_udp_dns 
+  user-tag persist_template_vip_172_31_6_53_53_dns_udp_dns 
+  exit-module
+!
+slb template port PORT_TEMPLATE_CONN-LIMIT 
+  conn-limit 2 resume 3 
+  exit-module
+!
+slb template port REAL_SERVER_PORT 
+  down-grace-period 60 
+  exit-module
+!
+slb template server CONN_LIMIT_TMP 
+  conn-limit 5 
+  exit-module
+!
+slb template server-ssl "Server SSL Template" 
+  exit-module
+!
+slb template server-ssl ServerSideSSL 
+  session-ticket-enable 
+  exit-module
+!
+slb template server-ssl t_ssl_Server_Test 
+  exit-module
+!
+slb template tcp TCP_TEMPLATE 
+  insert-client-ip 
+  exit-module
+!
+slb template tcp FTP_LONG_IDLE_TIME 
+  idle-timeout 15000 
+  exit-module
+!
+slb template tcp TELNET 
+  idle-timeout 3600 
+  insert-client-ip 
+  exit-module
+!
+slb template tcp-proxy TCP-PROXY-LOG 
+  keepalive-probes 4 
+  exit-module
+!
+slb template udp UDP_TEMPLATE 
+  aging immediate 
+  exit-module
+!
+slb template virtual-port undefined_virtual_port_template_80 
+  conn-limit 100 reset 
+  conn-rate-limit 50 per second reset 
+  user-tag uiext_l4_slb_undefined_80 
+  exit-module
+!
+slb template virtual-server undefined_virtual_server_template 
+  user-tag uiext_l4_slb_undefined_vip_template 
+  exit-module
+!
+slb template dblb DBLB_TEMPLATE 
+  server-version MySQL 
+  exit-module
+!
+slb template smpp SMPP_TEMPLATE 
+  exit-module
+!
+slb template dynamic-service DNS 
+  dns server 8.8.8.8 
+  exit-module
+!
+slb server BADSTORE 10.1.30.6 
+  health-check ping 
+  extended-stats 
+  port 80 tcp 
+    exit-module
+  exit-module
+!
+slb server Dummy-Server-Disabled 1.2.1.2 
+  health-check-disable 
+  port 80 tcp 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+slb server GOOGLE_SRVR 216.58.217.196 
+  health-check-disable 
+  port 80 tcp 
+    health-check-disable 
+    exit-module
+  port 443 tcp 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+slb server LADC01 172.18.0.2 
+  port 8880 tcp 
+    exit-module
+  exit-module
+!
+slb server LADC02 172.17.0.3 
+  port 8001 tcp 
+    exit-module
+  exit-module
+!
+slb server LADC03 172.17.0.4 
+  port 8000 tcp 
+    exit-module
+  exit-module
+!
+slb server LADC04 172.18.0.5 
+  port 8002 tcp 
+    exit-module
+  exit-module
+!
+slb server LADC05 172.18.0.10 
+  port 8004 tcp 
+    exit-module
+  exit-module
+!
+slb server MINT01 10.1.30.1 
+  template server CONN_LIMIT_TMP 
+  extended-stats 
+  user-tag uiext_l4_slb_srv_10_1_30_1 
+  port 21 tcp 
+    health-check FTP_HM 
+    exit-module
+  port 22 tcp 
+    exit-module
+  port 23 tcp 
+    exit-module
+  port 80 tcp 
+    health-check HM-HTTP-80 
+    extended-stats 
+    exit-module
+  port 81 tcp 
+    exit-module
+  port 443 tcp 
+    health-check HM-HTTPS-443 
+    extended-stats 
+    exit-module
+  port 800 udp 
+    health-check-disable 
+    exit-module
+  port 2121 tcp 
+    health-check-disable 
+    exit-module
+  port 3306 tcp 
+    health-check Mysql_3306 
+    extended-stats 
+    exit-module
+  port 3389 tcp 
+    exit-module
+  port 8080 tcp 
+    health-check HM-HTTP-8080 
+    exit-module
+  port 8081 tcp 
+    exit-module
+  port 8443 tcp 
+    health-check hm_HTTPS_8443 
+    extended-stats 
+    exit-module
+  exit-module
+!
+slb server MINT01_v6 2600:8801:9600:430::161 
+  port 80 tcp 
+    extended-stats 
+    exit-module
+  exit-module
+!
+slb server MINT02 10.1.30.2 
+  template server CONN_LIMIT_TMP 
+  extended-stats 
+  user-tag uiext_l4_slb_srv_10_1_30_2 
+  port 21 tcp 
+    health-check FTP_HM 
+    exit-module
+  port 23 tcp 
+    extended-stats 
+    exit-module
+  port 80 tcp 
+    health-check HM-HTTP-80 
+    extended-stats 
+    exit-module
+  port 81 tcp 
+    health-check ping 
+    exit-module
+  port 443 tcp 
+    health-check HM-HTTPS-443 
+    exit-module
+  port 3306 tcp 
+    health-check Mysql_3306 
+    exit-module
+  port 3389 tcp 
+    exit-module
+  port 8080 tcp 
+    health-check HM-HTTP-8080 
+    exit-module
+  exit-module
+!
+slb server MINT02_v6 2600:8801:9600:430::162 
+  port 80 tcp 
+    exit-module
+  exit-module
+!
+slb server WAFLOGGER02 10.10.1.182 
+  port 514 tcp 
+    exit-module
+  port 3389 tcp 
+    exit-module
+  port 8000 tcp 
+    exit-module
+  exit-module
+!
+slb server WEB-CASINO 10.1.30.99 
+  health-check ping 
+  port 80 tcp 
+    exit-module
+  port 443 tcp 
+    exit-module
+  port 3000 tcp 
+    extended-stats 
+    exit-module
+  port 3389 tcp 
+    exit-module
+  port 5353 tcp 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+slb server WIN10_SRVR 10.40.1.111 
+  port 22 tcp 
+    exit-module
+  port 3389 tcp 
+    exit-module
+  port 5901 tcp 
+    exit-module
+  exit-module
+!
+slb server WIN2012 10.1.30.64 
+  port 21 tcp 
+    exit-module
+  port 22 tcp 
+    exit-module
+  port 23 tcp 
+    exit-module
+  port 25 tcp 
+    exit-module
+  port 53 tcp 
+    exit-module
+  port 53 udp 
+    exit-module
+  port 80 tcp 
+    exit-module
+  port 123 udp 
+    exit-module
+  port 389 tcp 
+    exit-module
+  port 443 tcp 
+    exit-module
+  port 445 tcp 
+    exit-module
+  port 445 udp 
+    exit-module
+  port 636 tcp 
+    exit-module
+  port 5353 tcp 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+slb server srv_10_1_30_53 10.1.30.53 
+  user-tag srv_10_1_30_53_dns 
+  port 53 tcp 
+    health-check ping 
+    user-tag srv_10_1_30_53_port_53_protocol_tcp_dns 
+    sampling-enable total_conn 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+    sampling-enable total_req 
+    exit-module
+  port 53 udp 
+    health-check ping 
+    user-tag srv_10_1_30_53_port_53_protocol_udp_dns 
+    sampling-enable total_conn 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+    sampling-enable total_req 
+    exit-module
+  exit-module
+!
+slb service-group ALT_PORT_81 tcp 
+  member MINT02 81 
+    exit-module
+  exit-module
+!
+slb service-group AUBURN tcp 
+  health-check AUBURN 
+  member MINT01 80 
+    exit-module
+  exit-module
+!
+slb service-group DB_SERVERS tcp 
+  health-check Mysql_3306 
+  member MINT01 3306 
+    exit-module
+  member MINT02 3306 
+    exit-module
+  exit-module
+!
+slb service-group Dummy-SG tcp 
+  health-check-disable 
+  member Dummy-Server-Disabled 80 
+    exit-module
+  exit-module
+!
+slb service-group FTP_2121 tcp 
+  member MINT01 2121 
+    exit-module
+  exit-module
+!
+slb service-group FTP_SG tcp 
+  extended-stats 
+  sample-rsp-time 
+  member MINT01 21 
+    exit-module
+  member MINT02 21 
+    exit-module
+  exit-module
+!
+slb service-group MINT01_UDP_800 udp 
+  member MINT01 800 
+    exit-module
+  exit-module
+!
+slb service-group TELNET_VIP tcp 
+  extended-stats 
+  sample-rsp-time 
+  member MINT01 23 
+    exit-module
+  member MINT02 23 
+    exit-module
+  exit-module
+!
+slb service-group WAF-LOG-DATA tcp 
+  member WAFLOGGER02 514 
+    exit-module
+  exit-module
+!
+slb service-group domain-SG tcp 
+  health-check domain 
+  member MINT01 80 
+    exit-module
+  exit-module
+!
+slb service-group WEB-BADSTORE-80 tcp 
+  method least-connection 
+  extended-stats 
+  member BADSTORE 80 
+    exit-module
+  exit-module
+!
+slb service-group WEB-CASINO-3000 tcp 
+  member WEB-CASINO 3000 
+    exit-module
+  exit-module
+!
+slb service-group WEB-CASINO-443 tcp 
+  member WEB-CASINO 443 
+    exit-module
+  exit-module
+!
+slb service-group WEB-CASINO-5353-tcp tcp 
+  member WEB-CASINO 5353 
+    exit-module
+  exit-module
+!
+slb service-group WEB-CASINO-80 tcp 
+  member WEB-CASINO 80 
+    exit-module
+  exit-module
+!
+slb service-group WEB-SERVERS-443 tcp 
+  method least-connection 
+  extended-stats 
+  health-check HM-HTTPS-443 
+  member MINT01 443 
+    exit-module
+  member MINT02 443 
+    exit-module
+  exit-module
+!
+slb service-group WEB-SERVERS-80 tcp 
+  extended-stats 
+  member MINT01 80 
+    exit-module
+  member MINT02 80 
+    exit-module
+  exit-module
+!
+slb service-group WEB-SERVERS-8080 tcp 
+  member MINT01 8080 
+    exit-module
+  member MINT02 8080 
+    exit-module
+  exit-module
+!
+slb service-group WEB-SERVERS-81 tcp 
+  method least-connection 
+  extended-stats 
+  member MINT01 81 
+    exit-module
+  exit-module
+!
+slb service-group WEB_SERVER_MIX_PORT tcp 
+  health-check HM-HTTP-80 
+  member MINT01 80 
+    exit-module
+  member MINT02 81 
+    exit-module
+  exit-module
+!
+slb service-group WEB_v6_80 tcp 
+  traffic-replication-type mirror-ip-repl 
+  member MINT01_v6 80 
+    exit-module
+  member MINT02_v6 80 
+    exit-module
+  exit-module
+!
+slb service-group WIN2012_DNS_TCP tcp 
+  member WIN2012 53 
+    exit-module
+  exit-module
+!
+slb service-group WIN2012_DNS_UDP udp 
+  member WIN2012 53 
+    exit-module
+  exit-module
+!
+slb service-group WIN2012_WEB_ tcp 
+  member WIN2012 22 
+    exit-module
+  exit-module
+!
+slb service-group WIN2012_WEB_443 tcp 
+  member WIN2012 443 
+    exit-module
+  exit-module
+!
+slb service-group WIN2012_WEB_80 tcp 
+  member WIN2012 80 
+    exit-module
+  exit-module
+!
+slb service-group sg_MINT01 tcp 
+  member MINT01 22 
+    exit-module
+  member MINT01 80 
+    exit-module
+  member MINT01 443 
+    exit-module
+  exit-module
+!
+slb service-group sg_MINT01_8443 tcp 
+  member MINT01 8443 
+    exit-module
+  exit-module
+!
+slb service-group sg_WIN10_SRVR02_5353 tcp 
+  exit-module
+!
+slb service-group sg_WIN2012_5353_TCP tcp 
+  member WIN2012 5353 
+    exit-module
+  exit-module
+!
+slb service-group undefined_80_tcp_sg tcp 
+  method least-connection 
+  health-check Hm_undefined_80 
+  user-tag uiext_l4_slb_undefined_sg_tcp_80 
+  member MINT01 80 
+    exit-module
+  member MINT02 80 
+    exit-module
+  exit-module
+!
+slb service-group vip_172_31_6_53_53_tcp_sg_dns tcp 
+  method least-connection 
+  health-check Hm_vip_172_31_6_53_53_tcp_dns 
+  user-tag vip_172_31_6_53_53_tcp_sg_dns 
+  member srv_10_1_30_53 53 
+    exit-module
+  exit-module
+!
+slb service-group vip_172_31_6_53_53_udp_sg_dns udp 
+  method least-connection 
+  health-check Hm_vip_172_31_6_53_53_udp_dns 
+  user-tag vip_172_31_6_53_53_udp_sg_dns 
+  member srv_10_1_30_53 53 
+    exit-module
+  exit-module
+!
+ip nat template logging NAT_FILE 
+  log port-mappings creation 
+  include-destination 
+  include-rip-rport 
+  severity informational 
+  service-group WAF-LOG-DATA 
+  exit-module
+!
+slb template client-ssl CLIENT-SSL-CERT 
+  cert SSL-CERT 
+  enable-tls-alert-logging fatal 
+  key SSL-CERT pass-phrase encrypted aWg0IBfDSsaOtxBuHxdzhjwQjLjV2wDnPBCMuNXbAOc8EIy41dsA5zwQjLjV2wDn 
+  server-name test1.domain.me cert wildcard.domain.me key wildcard.domain.me 
+  exit-module
+!
+slb template client-ssl CLIENT_SSL_TEMPLATE 
+  template cipher max_compatibility 
+  cert SSL-CERT 
+  key SSL-CERT 
+  server-name isupplier.jackinthebox.com cert SSL-CERT key SSL-CERT 
+  disable-sslv3 
+  exit-module
+!
+slb template dns DNS_TEMPLATE 
+  default-policy cache 
+  malformed-query drop 
+  enable-cache-sharing 
+  exit-module
+!
+slb template dns dns_templ_vip_172_31_6_53_53_dns_tcp_dns 
+  default-policy cache 
+  malformed-query drop 
+  user-tag vip_172_31_6_53_53_dns_tcp_dns 
+  class-list act_internet_dns 
+    lid 1 
+      conn-rate-limit 25 per 10 
+      over-limit-action log 1 
+      exit-module
+    exit-module
+  exit-module
+!
+slb template dns dns_templ_vip_172_31_6_53_53_dns_udp_dns 
+  default-policy cache 
+  malformed-query drop 
+  user-tag vip_172_31_6_53_53_dns_udp_dns 
+  class-list act_internet_dns 
+    lid 1 
+      conn-rate-limit 25 per 10 
+      over-limit-action log 1 
+      exit-module
+    exit-module
+  exit-module
+!
+slb template imap-pop3 IMAP_POP3_TEMPLATE 
+  starttls optional 
+  exit-module
+!
+slb template logging WAF-LOG-DATA01 
+  service-group WAF-LOG-DATA 
+  template tcp-proxy TCP-PROXY-LOG 
+  exit-module
+!
+slb template http HOST-SWITCHING-HTTP-TEMPLATE 
+  host-switching equals www123.domain.me service-group domain-SG 
+  host-switching equals www123.auburn.me service-group AUBURN 
+  insert-client-ip X-CLIENT-IP 
+  template logging WAF-LOG-DATA01 
+  exit-module
+!
+slb template http HTTP_XFF_TEMP 
+  insert-client-ip X-FORWARDED-FOR 
+  exit-module
+!
+slb template http NEW_HTTP 
+  insert-client-ip X-FORWARDED-FOR 
+  exit-module
+!
+slb template http CONTENT_REPLACE 
+  response-content-replace depth1/depth2/depth3/depth4 depth4 
+  exit-module
+!
+slb template http REPLACE_HOST_HEADER 
+  request-header-erase Host 
+  request-header-insert "Host: war-web-vip01.domain.me" insert-always 
+  exit-module
+!
+slb template http PDS 
+  host-switching equals intranet.pdsconnect.com service-group ALT_PORT_81 
+  exit-module
+!
+slb template http CLIENT_IP 
+  insert-client-ip X-CLIENT-FOR 
+  exit-module
+!
+slb template http HTTP_HEADER_INSERTS 
+  insert-client-ip X-FORWARDED-HOST 
+  request-header-insert "X-FORWARDED-FOR: IP::client_addr" insert-always 
+  request-header-insert "X-FORWARDED-HOST: HTTP::host" insert-always 
+  exit-module
+!
+slb template http INSERT_HEADERS 
+  request-header-insert "X-Forwarded-Proto: $proto" insert-always 
+  request-header-insert "X-Forwarded-Port: " insert-always 
+  request-header-insert "X-Forwarded-Host: " insert-always 
+  request-header-insert "X-Forwarded-For: $cip" insert-always 
+  exit-module
+!
+slb template cache RAM-CACHING 
+  template logging WAF-LOG-DATA01 
+  verify-host 
+  exit-module
+!
+slb template policy CONN_LIMIT_POLICY 
+  class-list CL_CLASS_LIST 
+    lid 1 
+      conn-limit 5 
+      over-limit-action reset 
+      exit-module
+    exit-module
+  exit-module
+!
+slb template policy ALLOW_VIP_ACCESS 
+  class-list ALLOW_SUBNETS 
+    exit-module
+  exit-module
+!
+slb template policy EXPLICIT_PROXY 
+  forward-policy 
+    action PERMIT_TO_INTERNET 
+      forward-to-internet WEB-SERVERS-80 fallback WEB-SERVERS-8080 
+      log 
+      exit-module
+    source ANY_SOURCE 
+      match-any 
+      destination any action PERMIT_TO_INTERNET 
+      exit-module
+    exit-module
+  exit-module
+!
+slb template sip SIP_TEMPALTE 
+  alg-source-nat 
+  failed-client-selection drop 
+  insert-client-ip 
+  server-selection-per-request 
+  dialog-aware 
+  exit-module
+!
+slb template smtp SMTP_TEMPLATE 
+  server-domain smtpout.secureserver.net 
+  starttls client optional 
+  starttls server optional 
+  exit-module
+!
+slb template external-service EXT_SERVICE_TEMPLATE 
+  service-group WEB-SERVERS-80 
+  template tcp-proxy TCP-PROXY-LOG 
+  template persist source-ip source-ip-persistence 
+  exit-module
+!
+slb template reqmod-icap REQMOD_ICAP 
+  allowed-http-methods "GET POST" 
+  exit-module
+!
+slb template respmod-icap RESPMOD_ICAP 
+  include-protocol-in-uri 
+  fail-close 
+  min-payload-size 56 
+  exit-module
+!
+waf template WAF01 
+  bot-check bot_defs 
+  buf-ovf disable 
+  buf-ovf max-cookie-len 0 
+  buf-ovf max-cookie-name-len 0 
+  buf-ovf max-cookie-value-len 0 
+  buf-ovf max-cookies-len 0 
+  buf-ovf max-hdr-name-len 0 
+  buf-ovf max-hdr-value-len 0 
+  buf-ovf max-hdrs-len 0 
+  buf-ovf max-line-len 0 
+  buf-ovf max-parameter-name-len 0 
+  buf-ovf max-parameter-total-len 0 
+  buf-ovf max-parameter-value-len 0 
+  buf-ovf max-post-size 0 
+  buf-ovf max-query-len 0 
+  buf-ovf max-url-len 0 
+  ccn-mask 
+  deny-action http-resp-403 "<html><title>Request Denied!</title><body><center><h1>Request Denied!</h1><p>If you have any questions contact the admin.</p></center></body></html>" 
+  json-limit max-array-value-count 0 
+  json-limit max-depth 0 
+  json-limit max-object-member-count 0 
+  json-limit max-string 0 
+  log-succ-reqs 
+  max-cookies 2 
+  max-entities 0 
+  max-hdrs 16 
+  max-parameters 5 
+  sqlia-check reject sqlia_defs 
+  ssn-mask 
+  template logging WAF-LOG-DATA01 
+  xml-limit max-attr 0 
+  xml-limit max-attr-name-len 0 
+  xml-limit max-attr-value-len 0 
+  xml-limit max-cdata-len 0 
+  xml-limit max-elem 0 
+  xml-limit max-elem-child 0 
+  xml-limit max-elem-depth 0 
+  xml-limit max-elem-name-len 0 
+  xml-limit max-entity-exp 0 
+  xml-limit max-entity-exp-depth 0 
+  xml-limit max-namespace 0 
+  xml-limit max-namespace-uri-len 0 
+  xml-sqlia-check 
+  exit-module
+!
+waf template WAF02 
+  bot-check bot_defs 
+  buf-ovf max-cookie-len 256 
+  buf-ovf max-cookie-value-len 256 
+  buf-ovf max-cookies-len 256 
+  buf-ovf max-hdr-name-len 50 
+  buf-ovf max-hdr-value-len 125 
+  buf-ovf max-hdrs-len 1024 
+  buf-ovf max-line-len 64 
+  buf-ovf max-parameter-name-len 128 
+  buf-ovf max-parameter-total-len 1024 
+  buf-ovf max-parameter-value-len 24 
+  buf-ovf max-post-size 64 
+  buf-ovf max-query-len 0 
+  buf-ovf max-url-len 48 
+  ccn-mask 
+  deny-action http-resp-403 "<html><title>Request Denied! - WAF02</title><body><center><h1>Request Denied! - WAF02</h1><p>If you have any questions contact the admin at nowhere@mail.org.</p></center></body></html>" 
+  json-limit max-array-value-count 0 
+  json-limit max-depth 0 
+  json-limit max-object-member-count 0 
+  json-limit max-string 0 
+  max-cookies 2 
+  max-entities 0 
+  max-hdrs 24 
+  max-parameters 10 
+  ssn-mask 
+  template logging WAF-LOG-DATA01 
+  xml-limit max-attr 0 
+  xml-limit max-attr-name-len 0 
+  xml-limit max-attr-value-len 0 
+  xml-limit max-cdata-len 0 
+  xml-limit max-elem 0 
+  xml-limit max-elem-child 0 
+  xml-limit max-elem-depth 0 
+  xml-limit max-elem-name-len 0 
+  xml-limit max-entity-exp 0 
+  xml-limit max-entity-exp-depth 0 
+  xml-limit max-namespace 0 
+  xml-limit max-namespace-uri-len 0 
+  xss-check sanitize jscript_defs 
+  exit-module
+!
+slb virtual-server FTP_VIP 172.31.6.21 /32 
+  description FTP_VIP
+  extended-stats 
+  port 21 ftp 
+    name FTP_PORT_21 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group FTP_SG 
+    template tcp FTP_LONG_IDLE_TIME 
+    exit-module
+  port 2121 ftp 
+    name FTP_PORT_2121 
+    extended-stats 
+    aflex PROXY_PROTOCOL 
+    source-nat pool 10_1_30_SNAT 
+    service-group FTP_2121 
+    template tcp FTP_LONG_IDLE_TIME 
+    exit-module
+  port 8443 tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group sg_MINT01_8443 
+    exit-module
+  exit-module
+!
+slb virtual-server INT_SRVR_VIP 10.1.30.150 /32 
+  port 80 tcp 
+    name VPORT_80 
+    extended-stats 
+    access-list 101 
+    source-nat pool INT_MINT02_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+    exit-module
+  exit-module
+!
+slb virtual-server L4_VIP 172.31.6.99 /32 
+  port 80 tcp 
+    name TCP_80 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    exit-module
+  exit-module
+!
+slb virtual-server NEW_SUBNET 172.31.19.100 /32 
+  port 80 http 
+    source-nat pool NEW_SUBNET 
+    service-group Dummy-SG 
+    exit-module
+  exit-module
+!
+slb virtual-server TELNET_VIP 172.31.6.23 /32 
+  description TELNET_VIP
+  extended-stats 
+  port 23 tcp 
+    name TELNET_PORT_23 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group TELNET_VIP 
+    template tcp TELNET 
+    exit-module
+  exit-module
+!
+slb virtual-server WEB-CASINO 172.31.6.85 /32 
+  description WEB CASINO - 192.168.0.99 - port 3000
+  extended-stats 
+  port 80 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-3000 
+    use-rcv-hop-for-resp 
+    aaa-policy FBA-POLICY 
+    exit-module
+  port 443 tcp 
+    ha-conn-mirror 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-443 
+    use-rcv-hop-for-resp 
+    exit-module
+  port 3000 tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-3000 
+    use-rcv-hop-for-resp 
+    exit-module
+  port 5353 tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-CASINO-5353-tcp 
+    use-rcv-hop-for-resp 
+    exit-module
+  exit-module
+!
+slb virtual-server WEB_BADSTORE 172.31.6.83 
+  extended-stats 
+  port 80 http 
+    name WEB-BADSTORE 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-BADSTORE-80 
+    use-rcv-hop-for-resp 
+    template waf WAF01 
+    aaa-policy FBA-POLICY 
+    exit-module
+  port 443 https 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-BADSTORE-80 
+    use-rcv-hop-for-resp 
+    template waf WAF01 
+    exit-module
+  exit-module
+!
+slb virtual-server WEB_VIP 172.31.6.80 /32 
+  port 80 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    template http CLIENT_IP 
+    exit-module
+  port 81 tcp 
+    aflex PROXY_PROTOCOL 
+    exit-module
+  port 443 https 
+    extended-stats 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    template client-ssl CLIENT-SSL-CERT 
+    exit-module
+  port 800 udp 
+    service-group MINT01_UDP_800 
+    exit-module
+  port 8080 http 
+    name vp_8080 
+    extended-stats 
+    source-nat auto 
+    service-group WEB-SERVERS-8080 
+    exit-module
+  exit-module
+!
+slb virtual-server WEB_VIP_4 172.31.6.84 /32 
+  port 80 http 
+    aflex LOG_SESSION_INFO 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+    exit-module
+  exit-module
+!
+slb virtual-server WEB_VIP_81 172.31.6.81 
+  port 80 http 
+    aflex INSERT_HEADERS 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+    exit-module
+  port 81 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-80 
+    use-rcv-hop-for-resp 
+    aaa-policy ntlm 
+    exit-module
+  port 443 https 
+    source-nat pool 10_1_30_SNAT 
+    service-group WEB-SERVERS-443 
+    use-rcv-hop-for-resp 
+    exit-module
+  exit-module
+!
+slb virtual-server WEB_VIP_V6 2600:8801:9600:410::80 
+  port 80 http 
+    extended-stats 
+    source-nat auto 
+    service-group WEB_v6_80 
+    use-rcv-hop-for-resp 
+    template http CLIENT_IP 
+    exit-module
+  exit-module
+!
+slb virtual-server WIN10_SRVR02 172.31.6.111 /32 
+  port 5353 dns-tcp 
+    extended-stats 
+    syn-cookie 
+    source-nat pool 10_1_30_SNAT 
+    service-group sg_WIN10_SRVR02_5353 
+    use-rcv-hop-for-resp 
+    exit-module
+  exit-module
+!
+slb virtual-server vip_172_31_6_53 172.31.6.53 
+  user-tag vip_172_31_6_53_dns 
+  port 53 dns-tcp 
+    syn-cookie 
+    source-nat pool 10_1_30_SNAT 
+    service-group vip_172_31_6_53_53_tcp_sg_dns 
+    template dns dns_templ_vip_172_31_6_53_53_dns_tcp_dns 
+    template persist source-ip persist_template_vip_172_31_6_53_53_dns_tcp_dns 
+    user-tag vip_172_31_6_53_port_53_dns_tcp_dns 
+    sampling-enable total_req 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+    exit-module
+  port 53 dns-udp 
+    source-nat pool 10_1_30_SNAT 
+    service-group vip_172_31_6_53_53_udp_sg_dns 
+    template dns dns_templ_vip_172_31_6_53_53_dns_udp_dns 
+    template persist source-ip persist_template_vip_172_31_6_53_53_dns_udp_dns 
+    user-tag vip_172_31_6_53_port_53_dns_udp_dns 
+    sampling-enable total_req 
+    sampling-enable total_fwd_bytes 
+    sampling-enable total_rev_bytes 
+    exit-module
+  exit-module
+!
+slb virtual-server vip_MINT01 172.31.6.161 /32 
+  port 22 tcp 
+    name vp_SSH 
+    extended-stats 
+    source-nat auto 
+    service-group sg_MINT01 
+    exit-module
+  port 80 http 
+    name vp_MINT01_80 
+    extended-stats 
+    source-nat auto 
+    service-group sg_MINT01 
+    exit-module
+  port 443 https 
+    name vp_HTTPS_443 
+    extended-stats 
+    source-nat auto 
+    service-group sg_MINT01 
+    template client-ssl CLIENT-SSL-CERT 
+    exit-module
+  exit-module
+!
+slb virtual-server vip_WIN2012 172.31.6.180 /32 
+  port 53 dns-udp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_DNS_UDP 
+    use-rcv-hop-for-resp 
+    exit-module
+  port 53 dns-tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_DNS_TCP 
+    use-rcv-hop-for-resp 
+    exit-module
+  port 80 http 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_WEB_80 
+    aaa-policy FBA-POLICY 
+    exit-module
+  port 443 https 
+    source-nat pool 10_1_30_SNAT 
+    service-group WIN2012_WEB_443 
+    template server-ssl t_ssl_Server_Test 
+    template client-ssl CLIENT-SSL-CERT 
+    exit-module
+  port 5353 dns-tcp 
+    source-nat pool 10_1_30_SNAT 
+    service-group sg_WIN2012_5353_TCP 
+    use-rcv-hop-for-resp 
+    exit-module
+  exit-module
+!
+logging email-address admin@domain.me 
+!
+logging syslog information 
+!
+logging trap emergency 
+!
+logging host 192.168.0.182 use-mgmt-port 
+!
+logging host 192.168.0.29 use-mgmt-port 
+!
+logging buffered 31000 
+!
+gslb system auto-map ttl 10 
+no gslb system geo-location load iana 
+!
+gslb dns logging both 
+!
+gslb geo-location ASIA 
+  ip 146.56.0.0 mask 255.255.0.0 
+  exit-module
+!
+gslb geo-location AUSTRALIA 
+  ip 146.11.0.0 mask 255.255.0.0 
+  exit-module
+!
+gslb geo-location Anywhere 
+  ip 0.0.0.0 mask 0.0.0.0 
+  exit-module
+!
+gslb geo-location EUROPE 
+  ip 146.50.0.0 mask 255.255.0.0 
+  exit-module
+!
+gslb geo-location N_AMERICA 
+  ip 146.68.0.0 mask 255.255.0.0 
+  exit-module
+!
+gslb geo-location S_AMERICA 
+  ip 146.134.0.0 mask 255.255.0.0 
+  exit-module
+!
+gslb protocol status-interval 30 
+!
+gslb protocol enable controller 
+!
+gslb protocol enable device 
+!
+device-context 1
+  router ipv6 ospf 1 
+    passive-interface loopback 1 
+    router-id 172.31.6.2 
+    redistribute static metric 5 metric-type 1 
+    redistribute connected 
+    exit-module
+!
+device-context 2
+  router ipv6 ospf 1 
+    passive-interface loopback 1 
+    router-id 172.31.6.3 
+    redistribute floating-ip 
+    redistribute static metric 5 metric-type 1 
+    redistribute connected 
+    exit-module
+!
+device-context 1
+  router ospf 10 
+    auto-cost reference-bandwidth 1000 
+    bfd all-interfaces 
+    distribute-internal vip area 0.0.0.1 cost 10 
+    ha-standby-extra-cost 30 
+    log-adjacency-changes detail 
+    network 172.31.0.0/16 area 0.0.0.1 
+    router-id 172.31.6.2 
+    timers spf exp 30000 50000 
+    exit-module
+!
+device-context 2
+  router ospf 10 
+    auto-cost reference-bandwidth 1000 
+    bfd all-interfaces 
+    distribute-internal vip area 0.0.0.1 cost 10 
+    ha-standby-extra-cost 30 
+    log-adjacency-changes detail 
+    network 172.31.6.0/24 area 0.0.0.1 
+    router-id 172.31.6.3 
+    timers spf exp 30000 50000 
+    exit-module
+!
+sflow setting packet-sampling-rate 100 
+sflow setting counter-polling-interval 10 
+!
+device-context 1
+  sflow sampling ve 3
+!
+snmp-server enable service 
+!
+device-context 1
+  snmp-server location San_Diego 
+!
+snmp-server enable traps all 
+!
+snmp-server enable traps gslb all 
+!
+rba enable 
+!
+rba role testRole1 
+  waf write 
+  slb write 
+  gslb write 
+  exit-module
+!
+rba role testRole2 
+  waf read 
+  slb read 
+  gslb read 
+  exit-module
+!
+rba role testRole3 
+  gslb no-access 
+  slb no-access 
+  waf no-access 
+  exit-module
+!
+rba user test 
+  partition DMZ 
+    role testRole1 
+    exit-module
+  partition DMZII 
+    exit-module
+  partition shared 
+    root no-access 
+    exit-module
+  exit-module
+!
+rba user testADMINS 
+  partition DMZ 
+    role testRole1 
+    exit-module
+  partition DMZII 
+    root no-access 
+    exit-module
+  partition shared 
+    root no-access 
+    exit-module
+  exit-module
+!
+rba user testUser1 
+  partition DMZ 
+    role testRole1 
+    exit-module
+  partition DMZII 
+    exit-module
+  partition shared 
+    root no-access 
+    exit-module
+  exit-module
+!
+rba user testUser10 
+  partition DMZ 
+    role testRole1 
+    exit-module
+  partition DMZII 
+    role testRole3 
+    exit-module
+  partition shared 
+    root no-access 
+    exit-module
+  exit-module
+!
+rba user testUser2 
+  partition DMZ 
+    role testRole2 
+    exit-module
+  partition shared 
+    root no-access 
+    exit-module
+  exit-module
+!
+rba group testGroup1 
+  partition DMZ 
+    waf write 
+    partition write 
+    slb write 
+    exit-module
+  partition shared 
+    root no-access 
+    exit-module
+  exit-module
+!
+object-group network WEB_CLIENTS 
+  10.1.1.0 0.0.0.255 
+  exit-module
+!
+object-group network WEB_SERVERS 
+  20.1.1.0 0.0.0.255 
+  exit-module
+!
+object-group service WEB_SERVICE 
+  tcp eq 80 
+  exit-module
+!
+end
+
+!Current configuration: 6860 bytes
+!Configuration last updated at 13:46:28 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition DMZ
+!
+!
+class-list CL_CLASS_LIST 
+  172.31.5.200/32 
+  exit-module
+!
+vlan 1/100 
+  untagged ethernet 1
+  router-interface ve 100 
+  name "br100 -> vMX02|em6" 
+  exit-module
+!
+vlan 2/100 
+  untagged ethernet 1
+  router-interface ve 100 
+  name "br100 -> vMX02|em6" 
+  exit-module
+!
+device-context 1
+  bfd enable 
+!
+device-context 2
+  bfd enable 
+!
+interface ethernet 1/1 
+  name "br100 -> vMX02|em6" 
+  enable 
+  exit-module
+!
+interface ethernet 2/1 
+  name "br100 -> vMX02|em6" 
+  enable 
+  exit-module
+!
+interface ve 1/100 
+  ip address 172.31.5.2 255.255.255.0 
+  ip igmp generate-membership-query 10 max-resp-time 60 
+  bfd interval 300 min-rx 300 multiplier 3 
+  exit-module
+!
+interface ve 2/100 
+  ip address 172.31.5.3 255.255.255.0 
+  ip igmp generate-membership-query 10 max-resp-time 60 
+  bfd interval 300 min-rx 300 multiplier 3 
+  exit-module
+!
+vrrp-a vrid 0 
+  floating-ip 172.31.5.1 
+  floating-ip 172.31.5.21 
+  device-context 1
+    blade-parameters 
+      priority 200 
+      tracking-options 
+        interface ethernet 1 priority-cost 100 
+        exit-module
+      exit-module
+  device-context 2
+    blade-parameters 
+      priority 210 
+      tracking-options 
+        interface ethernet 1 priority-cost 100 
+        exit-module
+      exit-module
+  exit-module
+!
+device-context 1
+  ip route 0.0.0.0 /0 172.31.5.254 
+!
+device-context 2
+  ip route 0.0.0.0 /0 172.31.5.254 
+!
+slb common 
+  extended-stats 
+  exit-module
+!
+health monitor DNS-UDP 
+  exit-module
+!
+health monitor GATEWAY 
+  exit-module
+!
+health monitor DNS-UDP 
+  method dns domain adc1.mydomain.local port 53 type A 
+  exit-module
+!
+health monitor GATEWAY 
+  override-ipv4 1.1.1.1 
+  exit-module
+!
+slb template server CONN_LIMIT_TMP 
+  conn-limit 5 
+  exit-module
+!
+slb template server-ssl OWA-SERVER-SIDE 
+  exit-module
+!
+slb server DUMMY_SVR 10.10.10.10 
+  health-check-disable 
+  port 53 udp 
+    health-check-disable 
+    exit-module
+  port 53 tcp 
+    health-check-disable 
+    exit-module
+  port 80 tcp 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+slb server UBUNTU-NS01 172.31.5.53 
+  disable 
+  port 53 tcp 
+    exit-module
+  port 53 udp 
+    health-check DNS-UDP 
+    exit-module
+  exit-module
+!
+slb service-group DNS_53_TCP tcp 
+  member UBUNTU-NS01 53 
+    exit-module
+  exit-module
+!
+slb service-group DNS_53_UDP udp 
+  member UBUNTU-NS01 53 
+    exit-module
+  exit-module
+!
+slb service-group WEB_80_HTTP tcp 
+  member DUMMY_SVR 80 
+    exit-module
+  exit-module
+!
+slb template client-ssl TP_CLIENT_SSL 
+  exit-module
+!
+slb template dns DNS_FIREWALL 
+  default-policy cache 
+  malformed-query drop 
+  exit-module
+!
+slb template policy CONN_LIMIT_POLICY 
+  class-list CL_CLASS_LIST 
+    lid 1 
+      conn-limit 5 
+      over-limit-action reset 
+      exit-module
+    exit-module
+  exit-module
+!
+slb virtual-server GSLB_DNS 172.31.5.153 
+  description GSLB VIP for DNS queries
+  redistribution-flagged 
+  extended-stats 
+  port 53 dns-tcp 
+    gslb-enable 
+    exit-module
+  port 53 dns-udp 
+    conn-limit 8000000 reset 
+    gslb-enable 
+    exit-module
+  exit-module
+!
+logging trap critical 
+!
+gslb service-ip adc1 172.31.5.153 
+  port 53 tcp 
+    health-check-protocol-disable 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+gslb service-ip adc2 172.31.15.153 
+  port 53 tcp 
+    health-check-protocol-disable 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+gslb service-ip WWW-VIP-HQ-SHARED 172.31.6.80 
+  port 443 tcp 
+    exit-module
+  exit-module
+!
+gslb service-ip WWW-VIP-DR-SHARED 172.31.6.80 
+  port 443 tcp 
+    exit-module
+  exit-module
+!
+gslb service-ip EXCHANGE-VIP-HQ-SHARED 172.31.6.5 
+  port 443 tcp 
+    exit-module
+  exit-module
+!
+gslb service-ip EXCHANGE-VIP-DR-SHARED 172.31.6.5 
+  port 443 tcp 
+    exit-module
+  exit-module
+!
+gslb service-ip WEB-BADSTORE 172.31.6.83 
+  health-check-protocol-disable 
+  port 80 tcp 
+    exit-module
+  exit-module
+!
+gslb service-ip WebGoat 172.31.6.81 
+  health-check-protocol-disable 
+  health-check-disable 
+  port 8080 tcp 
+    health-check-protocol-disable 
+    health-check-disable 
+    exit-module
+  exit-module
+!
+gslb service-ip domain-VIP-HQ-SHARED 172.31.6.64 
+  port 443 tcp 
+    exit-module
+  exit-module
+!
+gslb service-ip domain-VIP-DR-SHARED 172.31.6.64 
+  port 443 tcp 
+    exit-module
+  exit-module
+!
+gslb group default 
+  enable 
+  primary 172.31.15.21 
+  priority 175 
+  exit-module
+!
+gslb site EXT-HQ 
+  ip-server WEB-BADSTORE 
+  slb-dev TH3030S-HQ 172.31.5.21 
+    admin-preference 200 
+    vip-server adc1 
+    vip-server WWW-VIP-HQ-SHARED 
+    vip-server EXCHANGE-VIP-HQ-SHARED 
+    vip-server domain-VIP-HQ-SHARED 
+    exit-module
+  exit-module
+!
+gslb site EXT-DR 
+  slb-dev TH3030S-DR 172.31.15.21 
+    admin-preference 150 
+    vip-server adc2 
+    vip-server WWW-VIP-DR-SHARED 
+    vip-server EXCHANGE-VIP-DR-SHARED 
+    vip-server domain-VIP-DR-SHARED 
+    vip-server WebGoat 
+    exit-module
+  exit-module
+!
+gslb site AZURE-DR 
+  slb-dev vThunderAzure 104.210.45.241 
+    admin-preference 175 
+    exit-module
+  exit-module
+!
+gslb policy GSLB-POLICY 
+  no geographic 
+  no round-robin 
+  metric-force-check 
+  metric-order health-check weighted-ip admin-preference 
+  dns selected-only 
+  dns logging both 
+  dns server any authoritative 
+  exit-module
+!
+gslb zone gslb.domain.me 
+  policy GSLB-POLICY 
+  dns-soa-record ns01.domain.me admin.domain.me expire 604800 refresh 2880 retry 7200 serial 201712261 ttl 120 
+  dns-mx-record mail.domain.me 10 
+  dns-mx-record smtp.domain.me 20 
+  dns-ns-record ubuntu-ns01.domain.me 
+  service 8001 test1 
+    policy GSLB-POLICY 
+    exit-module
+  service 443 test2 
+    dns-a-record domain-VIP-DR-SHARED as-backup weight 99 ttl 5 static 
+    dns-a-record domain-VIP-HQ-SHARED weight 100 ttl 5 static 
+    exit-module
+  service 443 test3 
+    dns-a-record domain-VIP-DR-SHARED as-backup weight 99 ttl 5 static 
+    dns-a-record domain-VIP-HQ-SHARED weight 100 ttl 5 static 
+    exit-module
+  service 8080 webgoat 
+    action forward both 
+    dns-a-record WebGoat weight 100 ttl 5 static 
+    exit-module
+  service 0 client01 
+    health-check-port 443 
+    exit-module
+  service 0 client02 
+    exit-module
+  service 80 client03 
+    exit-module
+  exit-module
+!
+device-context 1
+  router bgp 65002 
+    bgp router-id 172.31.5.2 
+    network 172.31.5.0/24 
+    neighbor 172.31.5.254 remote-as 65001 
+    neighbor 172.31.5.254 fall-over bfd 
+    redistribute vip only-flagged 
+    exit-module
+!
+device-context 2
+  router bgp 65003 
+    bgp router-id 172.31.5.3 
+    network 172.31.5.0/24 
+    neighbor 172.31.5.254 remote-as 65001 
+    neighbor 172.31.5.254 fall-over bfd 
+    redistribute vip only-flagged 
+    exit-module
+!
+end
+
+!Current configuration: 151 bytes
+!Configuration last updated at 13:46:28 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition DMZII
+!
+!
+!
+end
+
+!Current configuration: 155 bytes
+!Configuration last updated at 13:46:28 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition EXP-PROXY
+!
+!
+!
+end
+
+!Current configuration: 2836 bytes
+!Configuration last updated at 13:46:28 PST Mon Feb 5 2018
+!Configuration last saved at 13:46:34 PST Mon Feb 5 2018
+!
+active-partition CGN_FixedNat
+!
+!
+vlan 1/32 
+  untagged ethernet 5
+  router-interface ve 32 
+  exit-module
+!
+vlan 2/32 
+  untagged ethernet 5
+  router-interface ve 32 
+  exit-module
+!
+interface ethernet 1/5 
+  enable 
+  exit-module
+!
+interface ethernet 1/6 
+  enable 
+  ip address 10.1.51.2 255.255.255.0 
+  ip nat outside 
+  exit-module
+!
+interface ethernet 2/5 
+  enable 
+  exit-module
+!
+interface ethernet 2/6 
+  enable 
+  ip address 10.1.51.3 255.255.255.0 
+  ip nat outside 
+  exit-module
+!
+interface ve 1/32 
+  ip address 172.31.50.2 255.255.255.0 
+  ip nat inside 
+  exit-module
+!
+interface ve 2/32 
+  ip address 172.31.50.3 255.255.255.0 
+  ip nat inside 
+  exit-module
+!
+!
+vrrp-a vrid 1 
+  floating-ip 172.31.50.1 
+  floating-ip 10.1.51.1 
+  follow vrid-lead AX1 
+  exit-module
+!
+device-context 1
+  ip route 0.0.0.0 /0 172.31.50.254 
+!
+device-context 2
+  ip route 0.0.0.0 /0 172.31.50.254 
+!
+ip-list FIXED-NAT-INSIDE-CUSTOMER01 
+  10.1.51.4 
+  exit-module
+!
+ip-list FIXED-NAT-PUBLIC-CUSTOMER01 
+  172.31.50.100 
+  exit-module
+!
+cgnv6 server SYSLOGGER01 10.40.1.182 
+  port 514 udp 
+    exit-module
+  exit-module
+!
+cgnv6 service-group sg_SYSLOG udp 
+  member SYSLOGGER01 514 
+    exit-module
+  exit-module
+!
+cgnv6 template logging LSN_LOG 
+  log http-requests url 
+  log sessions 
+  rule http-requests dest-port 80 
+  service-group sg_SYSLOG 
+  exit-module
+!
+cgnv6 template logging SYSLOG_DEFAULT 
+  log fixed-nat port-mappings creation 
+  log fixed-nat user-ports periodic 1 start-time 0:0 
+  format custom 
+  batched-logging-disable 
+  service-group sg_SYSLOG 
+  custom message fixed-nat-allocated $src-ip$,$nat-ip$,$nat-port-start$,$nat-port-end$ 
+  exit-module
+!
+cgnv6 lsn alg esp enable 
+!
+cgnv6 lsn alg sip enable 
+!
+cgnv6 lsn alg tftp enable 
+!
+cgnv6 lsn endpoint-independent-mapping tcp 
+  port 1 to 65535 
+  exit-module
+!
+cgnv6 lsn endpoint-independent-mapping udp 
+  port 1 to 65535 
+  exit-module
+!
+cgnv6 lsn endpoint-independent-filtering tcp 
+  port 1 to 65535 
+  exit-module
+!
+cgnv6 lsn endpoint-independent-filtering udp 
+  port 1 to 65535 
+  exit-module
+!
+cgnv6 lsn stun-timeout tcp port 1 to 65535 5 
+!
+cgnv6 lsn stun-timeout udp port 1 to 65535 5 
+!
+cgnv6 nat icmp respond-to-ping 
+!
+cgnv6 nat range-list PLANE01 172.31.50.100 255.255.255.255 10.1.51.100 255.255.255.255 count 1 
+!
+cgnv6 fixed-nat create-port-mapping-file 
+!
+device-context 1
+  router bgp 65102 
+    bgp router-id 172.31.50.2 
+    network 172.31.50.0/24 
+    neighbor 172.31.5.254 remote-as 65101 
+    neighbor 172.31.5.254 fall-over bfd 
+    redistribute ip-nat route-map NAT_REDISTRIBUTION 
+    redistribute vip only-flagged 
+    exit-module
+!
+device-context 1
+  route-map NAT_REDITRIBUTION permit 1 
+    exit-module
+!
+end
