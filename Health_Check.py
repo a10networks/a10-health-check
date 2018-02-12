@@ -294,8 +294,8 @@ class Acos(object):
 
         try:
             log_off = self.axapi_call('logoff', 'POST')
-            logoff_response = log_off.content
-            print("Token: ", token, "Logoff Response", logoff_response)
+            logoff_response = log_off.content.decode()
+            print("Token: ", token, "Logoff Response\n", logoff_response)
         except:
             self.logger.error("Error logging off of session")
         else:
