@@ -387,7 +387,7 @@ class Acos(object):
         try:
             log_off = self.axapi_call('logoff', 'POST')
             logoff_response = log_off.content.decode()
-            print("Token: ", token, "Logoff Response\n", logoff_response)
+            #print("Token: ", token, "Logoff Response\n", logoff_response)
         except:
             self.logger.error("Error logging off of session")
         else:
@@ -708,7 +708,7 @@ class Acos(object):
     def get_management_services(self):
         """gets the currently enabled management services"""
 
-        management_services = self.axapi_call('enable-management', 'GET').content.decode()
+        management_services = json.loads(self.axapi_call('enable-management', 'GET').content.decode())
         return management_services
 
     def get_slb_conn_rate_limit_data(self):
