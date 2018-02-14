@@ -735,5 +735,12 @@ class Acos(object):
         bootimage = self.axapi_call('bootimage/oper', 'GET').content.decode()
         return bootimage
 
+    def pretty_print_json(self, json):
+        """takes a json object and pretty prints it"""
+        pretty_json = json.dumps(json, indent=4, sort_keys=True)
+
+        return pretty_json
+
+
 if __name__ == '__main__':
     main()
