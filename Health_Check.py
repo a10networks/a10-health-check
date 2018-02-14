@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Summary:
@@ -27,10 +27,11 @@ import json
 import urllib3
 import logging
 import datetime
+import ast
 
 parser = argparse.ArgumentParser(description='Running this script will issue whatever commands are presented to this script.  All commands are issued from configuration mode.')
 devices = parser.add_mutually_exclusive_group()
-devices.add_argument('-d', '--device', default='192.168.0.152',help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
+devices.add_argument('-d', '--device', default='10.0.1.222', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
 parser.add_argument('-p', '--password', default='a10', help='user password')
 parser.add_argument('-u', '--username', default='admin', help='username (default: admin)')
 parser.add_argument('-v', '--verbose', default=0, action='count', help='Enable verbose detail')
@@ -45,8 +46,11 @@ try:
 except Exception as e:
     print(e)
 
+#verbose = 1
+
 # set the default logging format
 logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
+
 
 def main():
     urllib3.disable_warnings()
@@ -54,6 +58,9 @@ def main():
         device = Acos(device, username, password)
         device.set_logging_env()
         token = device.auth()
+
+        # get a list of partitions (we will iterate over it multiple times later on
+        device.partitions = device.get_partition_list()
 
         ##################################################################################
         # Capture & Save Configurations
@@ -206,24 +213,112 @@ def main():
         # Application Services
         ##################################################################################
 
+        run_application_stats = False
+        if run_application_stats == False:
+            print("Skipping appplication stats.")
+        else:
+
+            device.build_section_header('APPLICATION SERVICES CHECK')
+            # iterate through each partition
+            for partition in device.partitions:
+
+                # change to the first partition
+                device.change_partition(partition)
+
+                # instatiate empty list of servers
+                servers = []
+                # get json list of servers
+                slb_servers = device.get_slb_servers()
+
+                # for each server in the list (if isn't empty) add the name as a value
+                if slb_servers:
+                    for server in slb_servers['server-list']:
+                        servers.append(server['name'])
+
+                    # for each named server print a header then the stat information
+                    for server in servers:
+                        server_stats = device.get_slb_server_stats(server)
+                        device.build_section_header('Stats for SLB SERVER ' + server)
+                        print(server_stats)
+
+                # instatiate an empty list of service-groups
+                service_groups = []
+                # get the json list of service-groups
+                slb_service_groups = device.get_slb_service_groups()
+
+                # for each service-group in the list (if it isn't empty) add the name as a value
+                if slb_service_groups:
+                    for service_group in slb_service_groups['service-group-list']:
+                        service_groups.append(service_group['name'])
+
+                    # for each named service-group print a header then the stat information
+                    for service_group in service_groups:
+                        service_group_stats = device.get_slb_service_group_stats(service_group)
+                        device.build_section_header('Stats for SLB SERVICE-GROUP ' + service_group)
+                        print(service_group_stats)
+
+                # instatiate an empty list of virtual-servers
+                virtual_servers = []
+                # get teh json list of virtual-servers
+                slb_virtual_servers = device.get_slb_virtual_servers()
+
+                # for each virtual-server in the list (if it isn't empty) add the name as a value
+                if slb_virtual_servers:
+                    for virtual_server in slb_virtual_servers['virtual-server-list']:
+                        virtual_servers.append(virtual_server['name'])
+
+                    # for each named virtual-server print a header then the stat information
+                    for virtual_server in virtual_servers:
+                        virtual_server_stats = device.get_slb_virtual_server_stats(virtual_server)
+                        device.build_section_header('Stats for SLB VIRTUAL-SERVER ' + virtual_server)
+                        print(virtual_server_stats)
+
+            device.change_partition('shared')
 
 
         ##################################################################################
         # Monitoring Review
         ##################################################################################
-
+        run_monitoring_check = True
+        if run_monitoring_check == False:
+            print("Skipping monitoring check")
+        else:
+            device.build_section_header('MONITORING REVIEW')
+            logging_data = device.get_logging_data()
+            print(logging_data)
 
 
         ##################################################################################
         # Security Check
         ##################################################################################
 
+        run_security_check = False
+        if run_security_check == False:
+            print("Skipping security check.")
+        else:
+            device.build_section_header('SECURITY CHECK')
+            management = device.get_management_services()
+            conn_limit_data = device.get_slb_conn_rate_limit_data()
+            ip_anomaly = device.get_ip_anomaly_drop()
 
+            print(management)
+            # if there is no conn_limit_data a blank line will print
+            print(conn_limit_data)
+            print(ip_anomaly)
 
         ##################################################################################
         # Version Check
         ##################################################################################
+        run_version_check = False
+        if run_version_check == False:
+            print("Skipping version check.")
+        else:
+            device.build_section_header('VERSION/BOOTIMAGE CHECK')
+            version = device.get_version()
+            bootimage = device.get_bootimage()
 
+            print(version)
+            print(bootimage)
 
 
         ##################################################################################
@@ -234,12 +329,14 @@ def main():
         device.auth_logoff(token)
 
 # Class for making all device calls using AxAPI v3.0
+
+
 class Acos(object):
     def __init__(self, device, username, password):
         self.device = device
         self.username = username
         self.password = password
-        self.base_url = 'http://' + device + '/axapi/v3/'
+        self.base_url = 'https://' + device + '/axapi/v3/'
         self.headers = {'content-type': 'application/json'}
         self.run_config_with_def_all_parts = ''
         self.start_config_all_parts = ''
@@ -271,7 +368,7 @@ class Acos(object):
         # self.logger.debug('this is debug')
 
     def auth(self):
-        """authenticates and retrives the auth token for the A10 device"""
+        """authenticates and retrieves the auth token for the A10 device"""
 
         self.logger.debug('Entering the auth method')
         payload = {"credentials": {"username": self.username, "password": self.password}}
@@ -281,7 +378,7 @@ class Acos(object):
         self.logger.debug('Exiting the auth method')
         return auth_token
 
-    def auth_logoff(self,token):
+    def auth_logoff(self, token):
         """authenticates and retrives the auth token for the A10 device"""
 
         self.logger.debug('Logging Off to clean up session.')
@@ -289,8 +386,8 @@ class Acos(object):
 
         try:
             log_off = self.axapi_call('logoff', 'POST')
-            logoff_response = log_off.content
-            print("Token: ", token, "Logoff Response", logoff_response)
+            logoff_response = log_off.content.decode()
+            #print("Token: ", token, "Logoff Response\n", logoff_response)
         except:
             self.logger.error("Error logging off of session")
         else:
@@ -317,6 +414,7 @@ class Acos(object):
         payload = {'CommandList': commands}
         r = self.axapi_call('clideploy', 'POST', payload)
         self.logger.debug('Exiting the clideploy method')
+
         return r
 
     def get_startup_configs(self):
@@ -344,37 +442,30 @@ class Acos(object):
 
     def get_partition_list(self):
         """gets a list of all the partition names"""
-        partitions =[]
-        self.partition_list = self.axapi_call('partition', 'GET').content
-        parsed_json = json.loads(self.partition_list)
+        # instatiate list with shared partition as it is implied and not returned by the REST endpoint
+        partitions = ['shared']
+
+        partition_list = self.axapi_call('partition', 'GET').content
+        parsed_json = json.loads(partition_list)
         for item in parsed_json['partition-list']:
             partitions.append(item["partition-name"])
         return partitions
 
     def get_partition_config(self, partition):
         """gets the configuration for a particular partition"""
-        change_partition = self.axapi_call('DMZ', 'GET')
+        self.axapi_call(partition, 'GET')
         partition_config = self.axapi_call('/running-config', 'GET')
         print(partition_config.content)
 
     def change_partition(self,partition):
         try:
-            set_partition = self.axapi_call('active-partition/' + partition, 'POST')
+            payload = {'active-partition': {'curr_part_name': partition}}
+            set_partition = self.axapi_call('active-partition/' + partition, 'POST', payload)
             print("Status code for change_partition: ", set_partition.status_code)
         except HTTPError:
             logging.debug('Issue changing partition to ',partition)
         else:
             print(partition,' partition response: ', set_partition.content)
-            logging.debug('AxAPI changed to shared partition')
-
-    def set_shared_partition(self):
-        """Set AxAPI back to default (shared) partition)"""
-        try:
-            set_partition = self.axapi_call('shared', 'GET')
-        except:
-            logging.debug('Issue changing partition')
-        else:
-            print('shared partition response: ', set_partition.content)
             logging.debug('AxAPI changed to shared partition')
 
     def get_vrrpa(self):
@@ -404,6 +495,99 @@ class Acos(object):
         print(vcs_stat.content)
 
         return self.vcs_images,self.vcs_stat
+
+    def get_slb_servers(self):
+        """gets a list of all slb servers"""
+
+        self.logger.debug('Entering get_slb_servers method')
+        servers_list = self.axapi_call('slb/server', 'GET').content.decode()
+
+        if servers_list:
+            servers_list = json.loads(servers_list)
+        self.logger.info(servers_list)
+        self.logger.debug('Exiting get_slb_servers method')
+        return servers_list
+
+    def get_slb_service_groups(self):
+        """gets a list of all service-groups"""
+
+        self.logger.debug('Entering get_slb_service_groups method')
+        service_group_list = self.axapi_call('slb/service-group', 'GET').content.decode()
+
+        if service_group_list:
+            service_group_list = json.loads(service_group_list)
+        self.logger.info(service_group_list)
+        self.logger.debug('Exiting get_slb_service_groups method')
+        return service_group_list
+
+    def get_slb_virtual_servers(self):
+        """gets a list of all virtual-servers"""
+
+        self.logger.debug('Entering get_slb_virtual_servers method')
+        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET').content.decode()
+
+        if virtual_server_list:
+            virtual_server_list = json.loads(virtual_server_list)
+
+        self.logger.info(virtual_server_list)
+        self.logger.debug('Exiting get_slb_virtual_servers method')
+        return virtual_server_list
+
+    def get_slb_server_stats(self, server):
+        """gets operational stats for a slb server"""
+
+        self.logger.debug('Entering get_slb_server_stats method')
+        slb_server_stats = self.axapi_call('slb/server/' + server + '/stats', 'GET')
+        slb_server_stats = slb_server_stats.content.decode()
+        self.logger.info(slb_server_stats)
+        self.logger.debug('Exiting get_slb_server_stats method')
+        return slb_server_stats
+
+    def get_slb_service_group_stats(self, service_group):
+        """get operational stats for a service-group"""
+
+        self.logger.debug('Entering get_slb_service_group_stats method')
+        service_group_stats = self.axapi_call('slb/service-group/' + service_group + '/stats', 'GET')
+        service_group_stats = service_group_stats.content.decode()
+        self.logger.info(service_group_stats)
+        self.logger.debug('Exiting get_slb_service_group_stats method')
+        return service_group_stats
+
+    def get_slb_virtual_server_stats(self, virtual_server):
+        """get operation stats for a virtual-server"""
+        self.logger.debug('Entering get_slb_service_group_stats method')
+        virtual_server_stats = self.axapi_call('slb/virtual-server/' + virtual_server + '/stats', 'GET')
+        virtual_server_stats = virtual_server_stats.content.decode()
+        self.logger.info(virtual_server_stats)
+        self.logger.debug('Exiting get_slb_service_group_stats method')
+        return virtual_server_stats
+
+    def get_slb_server_oper(self, server):
+        """gets operational status for a server"""
+        self.logger.debug('Entering get_slb_server_oper method')
+        server_oper = self.axapi_call('slb/server/' + server + '/oper', 'GET')
+        server_oper = server_oper.content.decode()
+        self.logger.info(server_oper)
+        self.logger.debug('Exiting get_slb_server_oper method')
+        return server_oper
+
+    def get_slb_service_group_oper(self, service_group):
+        """gets operational status for a service-group"""
+        self.logger.debug('Entering get_slb_service_group_oper method')
+        service_group_oper = self.axapi_call('slb/service-group/' + service_group + '/oper', 'GET')
+        service_group_oper = service_group_oper.content.decode()
+        self.logger.info(service_group_oper)
+        self.logger.debug('Exiting get_slb_service_group_oper method')
+        return service_group_oper
+
+    def get_slb_virtual_server_oper(self, virtual_server):
+        """gets operational status for a virtual_server"""
+        self.logger.debug('Entering get_slb_virtual_server_oper method')
+        virtual_server_oper = self.axapi_call('slb/virtual-server/' + virtual_server + '/oper', 'GET')
+        virtual_server_oper = virtual_server_oper.content.decode()
+        self.logger.info(virtual_server_oper)
+        self.logger.debug('Exiting get_slb_virtual_server_oper method')
+        return  virtual_server_oper
 
     def memory(self):
         '''
@@ -515,32 +699,47 @@ class Acos(object):
         '''
         return True
 
-    def monitoring_info(self):
-        '''
-        This section will run the following cmds for monitoring.
+    def get_logging_data(self):
+        """gets the logs from the device"""
 
-        show logging
-        '''
-        return True
+        logging_data = self.axapi_call('syslog/oper', 'GET').content.decode()
+        return logging_data
 
-    def security_check(self):
-        '''
-        This section will run the following cmds for the security check
+    def get_management_services(self):
+        """gets the currently enabled management services"""
 
-        show management
-	    show slb conn-rate-limit src-ip statistics
-	    show ip anomaly-drop statistics
-        '''
-        return True
+        management_services = json.loads(self.axapi_call('enable-management', 'GET').content.decode())
+        return management_services
 
-    def version_check(self):
-        '''
-        This section will run the following cmds for the version check.
+    def get_slb_conn_rate_limit_data(self):
+        """gets the results of 'show slb conn-rate-limit src-ip statistics"""
 
-        show version
-	    show bootimage
-        '''
-        return True
+        slb_conn_rate_limit_data = self.axapi_call('slb/common/conn-rate-limit', 'GET').content.decode()
+        return slb_conn_rate_limit_data
+
+    def get_ip_anomaly_drop(self):
+        """gets the results of any ip anomoly drops"""
+
+        ip_anomaly = self.axapi_call('ip/anomaly-drop/stats', 'GET').content.decode()
+        return ip_anomaly
+
+    def get_version(self):
+        """gets the current version running"""
+
+        version = self.axapi_call('version/oper', 'GET').content.decode()
+        return version
+
+    def get_bootimage(self):
+        """get the bootimage configuration"""
+
+        bootimage = self.axapi_call('bootimage/oper', 'GET').content.decode()
+        return bootimage
+
+    def pretty_print_json(self, json):
+        """takes a json object and pretty prints it"""
+        pretty_json = json.dumps(json, indent=4, sort_keys=True)
+
+        return pretty_json
 
 
 if __name__ == '__main__':
