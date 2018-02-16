@@ -113,9 +113,9 @@ def main():
             device.build_section_header("VCS: /vcs/")
             images, summary = device.get_vcs()
             print("a10-url: /vcs/images/")
-            print(images.content)
+            print(images)
             print("a10-url: /vcs/summary")
-            print(summary.content)
+            print(summary)
 
         # REDUNDANCY CHECK: VRRP-A
         # COMMENTS: Run all vrrp-a cmds here for shared partition only
@@ -173,7 +173,7 @@ def main():
         # Health Check
         ##################################################################################
 
-        run_health_check = True
+        run_health_check = False
         if run_health_check == False:
             print("Skipping Health Check session.")
         else:
@@ -352,7 +352,7 @@ class Acos(object):
         self.device = device
         self.username = username
         self.password = password
-        self.base_url = 'http://' + device + '/axapi/v3/'
+        self.base_url = 'https://' + device + '/axapi/v3/'
         self.headers = {'content-type': 'application/json'}
         self.run_config_with_def_all_parts = ''
         self.start_config_all_parts = ''
@@ -389,7 +389,7 @@ class Acos(object):
         self.logger.debug('Entering the auth method')
         payload = {"credentials": {"username": self.username, "password": self.password}}
         authorization = self.axapi_call('auth', 'POST', payload)
-        auth_token = authorization.json()['authresponse']['signature']
+        auth_token = authorization['authresponse']['signature']
         self.headers['Authorization'] = 'A10 ' + auth_token
         self.logger.debug('Exiting the auth method')
         return auth_token
@@ -402,8 +402,7 @@ class Acos(object):
 
         try:
             log_off = self.axapi_call('logoff', 'POST')
-            logoff_response = log_off.content.decode()
-            # print("Token: ", token, "Logoff Response\n", logoff_response)
+            # print("Token: ", token, "Logoff Response\n", logoff)
         except:
             self.logger.error("Error logging off of session")
         else:
@@ -420,6 +419,17 @@ class Acos(object):
             r = requests.post(url, data=json.dumps(payload), headers=self.headers, verify=False)
         if verbose:
             print(r.content)
+
+        # if there is content on the object
+        if r.content:
+            try:
+                # try to convert it to a JSON / dict object
+                r = json.loads(r.content.decode())
+            except json.decoder.JSONDecodeError:
+                # otherwise just decode the bytes object
+                r = r.content.decode()
+
+
         self.logger.debug('Exiting the axapi_call method')
         return r
 
@@ -435,21 +445,21 @@ class Acos(object):
 
     def get_startup_configs(self):
         """Returns the startup configuration for an A10 device. Uses cli-deploy method."""
-        self.start_config_all_parts = self.clideploy(['show startup-config all-partitions'])
+        start_config_all_parts = self.clideploy(['show startup-config all-partitions'])
         self.logger.debug('Exiting get_startup_configs method')
-        return self.start_config_all_parts.content
+        return start_config_all_parts
 
     def get_running_configs(self):
         """Returns the running configuration for an A10 device. Uses cli-deploy method."""
-        self.run_config_with_def_all_parts = self.clideploy(['show running with-default partition-config all'])
+        run_config_with_def_all_parts = self.clideploy(['show running with-default partition-config all'])
         self.logger.debug('Exiting get_running_config method')
-        return bytes.decode(self.run_config_with_def_all_parts.content)
+        return run_config_with_def_all_parts
 
     def get_json_config(self):
         """Returns the json configuration for an A10 device. Uses cli-deploy method."""
-        self.run_json_config = (self.clideploy(['show json-config']))
+        run_json_config = (self.clideploy(['show json-config']))
         self.logger.debug('Exiting get_json_config method')
-        return self.run_json_config.content
+        return run_json_config
 
     def build_section_header(self, section):
         """prints section headers"""
@@ -463,10 +473,11 @@ class Acos(object):
         """gets a list of all the partition names"""
         # instatiate list with shared partition as it is implied and not returned by the REST endpoint
         partitions = ['shared']
-        partition_list = self.axapi_call('partition', 'GET').content.decode()
-        parsed_json = json.loads(partition_list)
-        for item in parsed_json['partition-list']:
-            partitions.append(item["partition-name"])
+        partition_list = self.axapi_call('partition', 'GET')
+
+        if type(partition_list) is dict:
+            for partition in partition_list['partition-list']:
+                partitions.append(partition["partition-name"])
         return partitions
 
     def get_partition_config(self, partition):
@@ -494,14 +505,14 @@ class Acos(object):
         show vrrp-a common
         show vrrp-a state stats
         """
-        self.vrrpa = self.axapi_call('vrrp-a', 'GET').content.decode()
-        self.vrrpa_detail = (self.clideploy(['show vrrp-a detail'])).content.decode()
-        self.vrrpa_common = self.axapi_call('vrrp-a/common/', 'GET').content.decode()
-        self.vrrpa_state_stats = self.axapi_call('vrrp-a/state/stats', 'GET').content.decode()
+        vrrpa = self.axapi_call('vrrp-a', 'GET')
+        vrrpa_detail = (self.clideploy(['show vrrp-a detail']))
+        vrrpa_common = self.axapi_call('vrrp-a/common/', 'GET')
+        vrrpa_state_stats = self.axapi_call('vrrp-a/state/stats', 'GET')
         self.logger.debug('Exiting get_vrrpa method')
-        return vrrpa, vrrpa_detail.content, vrrpa_common, vrrpa_state_stats
+        return vrrpa, vrrpa_detail, vrrpa_common, vrrpa_state_stats
 
-    def get_vcs_images(self):
+    def get_vcs(self):
         """Return the vcs information for the following cmds:
 
         show vcs images
@@ -517,10 +528,8 @@ class Acos(object):
         """gets a list of all slb servers"""
 
         self.logger.debug('Entering get_slb_servers method')
-        servers_list = self.axapi_call('slb/server', 'GET').content.decode()
+        servers_list = self.axapi_call('slb/server', 'GET')
 
-        if servers_list:
-            servers_list = json.loads(servers_list)
         self.logger.info(servers_list)
         self.logger.debug('Exiting get_slb_servers method')
         return servers_list
@@ -529,10 +538,8 @@ class Acos(object):
         """gets a list of all service-groups"""
 
         self.logger.debug('Entering get_slb_service_groups method')
-        service_group_list = self.axapi_call('slb/service-group', 'GET').content.decode()
+        service_group_list = self.axapi_call('slb/service-group', 'GET')
 
-        if service_group_list:
-            service_group_list = json.loads(service_group_list)
         self.logger.info(service_group_list)
         self.logger.debug('Exiting get_slb_service_groups method')
         return service_group_list
@@ -541,10 +548,8 @@ class Acos(object):
         """gets a list of all virtual-servers"""
 
         self.logger.debug('Entering get_slb_virtual_servers method')
-        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET').content.decode()
+        virtual_server_list = self.axapi_call('slb/virtual-server', 'GET')
 
-        if virtual_server_list:
-            virtual_server_list = json.loads(virtual_server_list)
         self.logger.info(virtual_server_list)
         self.logger.debug('Exiting get_slb_virtual_servers method')
         return virtual_server_list
@@ -553,7 +558,7 @@ class Acos(object):
         """gets operational stats for a slb server"""
 
         self.logger.debug('Entering get_slb_server_stats method')
-        slb_server_stats = self.axapi_call('slb/server/' + server + '/stats', 'GET').content.decode()
+        slb_server_stats = self.axapi_call('slb/server/' + server + '/stats', 'GET')
         self.logger.info(slb_server_stats)
         self.logger.debug('Exiting get_slb_server_stats method')
         return slb_server_stats
@@ -563,7 +568,6 @@ class Acos(object):
 
         self.logger.debug('Entering get_slb_service_group_stats method')
         service_group_stats = self.axapi_call('slb/service-group/' + service_group + '/stats', 'GET')
-        service_group_stats = service_group_stats.content.decode()
         self.logger.info(service_group_stats)
         self.logger.debug('Exiting get_slb_service_group_stats method')
         return service_group_stats
@@ -572,7 +576,6 @@ class Acos(object):
         """get operation stats for a virtual-server"""
         self.logger.debug('Entering get_slb_service_group_stats method')
         virtual_server_stats = self.axapi_call('slb/virtual-server/' + virtual_server + '/stats', 'GET')
-        virtual_server_stats = virtual_server_stats.content.decode()
         self.logger.info(virtual_server_stats)
         self.logger.debug('Exiting get_slb_service_group_stats method')
         return virtual_server_stats
@@ -581,7 +584,6 @@ class Acos(object):
         """gets operational status for a server"""
         self.logger.debug('Entering get_slb_server_oper method')
         server_oper = self.axapi_call('slb/server/' + server + '/oper', 'GET')
-        server_oper = server_oper.content.decode()
         self.logger.info(server_oper)
         self.logger.debug('Exiting get_slb_server_oper method')
         return server_oper
@@ -590,7 +592,6 @@ class Acos(object):
         """gets operational status for a service-group"""
         self.logger.debug('Entering get_slb_service_group_oper method')
         service_group_oper = self.axapi_call('slb/service-group/' + service_group + '/oper', 'GET')
-        service_group_oper = service_group_oper.content.decode()
         self.logger.info(service_group_oper)
         self.logger.debug('Exiting get_slb_service_group_oper method')
         return service_group_oper
@@ -599,7 +600,6 @@ class Acos(object):
         """gets operational status for a virtual_server"""
         self.logger.debug('Entering get_slb_virtual_server_oper method')
         virtual_server_oper = self.axapi_call('slb/virtual-server/' + virtual_server + '/oper', 'GET')
-        virtual_server_oper = virtual_server_oper.content.decode()
         self.logger.info(virtual_server_oper)
         self.logger.debug('Exiting get_slb_virtual_server_oper method')
         return virtual_server_oper
@@ -609,7 +609,7 @@ class Acos(object):
         show memory
         '''
         self.logger.debug('Entering get_memory method')
-        memory_info = self.axapi_call('system/memory/oper', 'GET').content.decode()
+        memory_info = self.axapi_call('system/memory/oper', 'GET')
         self.logger.info(memory_info)
         self.logger.debug('Exiting get_memory method')
         return memory_info
@@ -619,7 +619,7 @@ class Acos(object):
         show oper
         '''
         self.logger.debug('Entering get_system_oper method')
-        system_oper = self.axapi_call('system/oper/', 'GET').content.decode()
+        system_oper = self.axapi_call('system/oper/', 'GET')
         self.logger.info(system_oper)
         self.logger.debug('Exiting get_system_oper method')
         return system_oper
@@ -629,7 +629,7 @@ class Acos(object):
         show health monitor
         '''
         self.logger.debug('Entering get_health method')
-        health_info = self.axapi_call('health/monitor', 'GET').content.decode()
+        health_info = self.axapi_call('health/monitor', 'GET')
         self.logger.info(health_info)
         self.logger.debug('Exiting get_health method')
         return health_info
@@ -650,7 +650,7 @@ class Acos(object):
         show hardware
         '''
         self.logger.debug('Entering get_hardware method')
-        hardware = self.axapi_call('system/hardware/oper', 'GET').content.decode()
+        hardware = self.axapi_call('system/hardware/oper', 'GET')
         self.logger.info(hardware)
         self.logger.debug('Exiting get_hardware method')
         return hardware
@@ -660,7 +660,7 @@ class Acos(object):
         show disk
         '''
         self.logger.debug('Entering get_disk method')
-        disk = self.axapi_call('hd/', 'GET').content.decode()
+        disk = self.axapi_call('hd/', 'GET')
         self.logger.info(disk)
         self.logger.debug('Exiting get_disk method')
         return disk
@@ -670,7 +670,7 @@ class Acos(object):
         show slb hw-compression
         '''
         self.logger.debug('Entering get_slb_hw_compression method')
-        slb_hw_compression = self.axapi_call('slb/hw-compress/stats', 'GET').content.decode()
+        slb_hw_compression = self.axapi_call('slb/hw-compress/stats', 'GET')
         self.logger.info(slb_hw_compression)
         self.logger.debug('Exiting get_slb_hw_compression method')
         return slb_hw_compression
@@ -682,7 +682,7 @@ class Acos(object):
         show environment
         '''
         self.logger.debug('Entering get_environment method')
-        evironment = self.axapi_call('system/environment', 'GET').content.decode()
+        evironment = self.axapi_call('system/environment', 'GET')
         self.logger.info(evironment)
         self.logger.debug('Exiting get_environment method')
         return evironment
@@ -707,7 +707,7 @@ class Acos(object):
         show interfaces
         '''
         self.logger.debug('Entering get_interface_ethernet method')
-        interface_ethernet = self.axapi_call('interface/ethernet/stats', 'GET').content.decode()
+        interface_ethernet = self.axapi_call('interface/ethernet/stats', 'GET')
         self.logger.info(interface_ethernet)
         self.logger.debug('Exiting get_interface_ethernet method')
         return interface_ethernet
@@ -719,7 +719,7 @@ class Acos(object):
         show trunk
         '''
         self.logger.debug('Entering get_trunk method')
-        trunk = self.axapi_call('interface/trunk/stats', 'GET').content.decode()
+        trunk = self.axapi_call('interface/trunk/stats', 'GET')
         self.logger.info(trunk)
         self.logger.debug('Exiting get_trunk method')
         return trunk
@@ -743,7 +743,7 @@ class Acos(object):
         show lacp counter
         '''
         self.logger.debug('Entering get_lacp_counters method')
-        lacp_counters = self.axapi_call('network/lacp/stats', 'GET').content.decode()
+        lacp_counters = self.axapi_call('network/lacp/stats', 'GET')
         self.logger.info(lacp_counters)
         self.logger.debug('Exiting get_lacp_counters method')
         return lacp_counters
@@ -754,7 +754,7 @@ class Acos(object):
         show vlans
         '''
         self.logger.debug('Entering get_vlans method')
-        vlans = self.axapi_call('network/vlan', 'GET').content.decode()
+        vlans = self.axapi_call('network/vlan', 'GET')
         self.logger.info(vlans)
         self.logger.debug('Exiting get_vlans method')
         return vlans
@@ -765,7 +765,7 @@ class Acos(object):
         show vlan counters
         '''
         self.logger.debug('Entering get_vlan_stats method')
-        vlan_stats = self.axapi_call('network/vlan/stats', 'GET').content.decode()
+        vlan_stats = self.axapi_call('network/vlan/stats', 'GET')
         self.logger.info(vlan_stats)
         self.logger.debug('Exiting get_vlan_stats method')
         return vlan_stats
@@ -778,7 +778,7 @@ class Acos(object):
         show system resource-usage
         '''
         self.logger.debug('Entering get_system_resources_usage method')
-        system_resources_usage = self.axapi_call('system/resources-usage/oper', 'GET').content.decode()
+        system_resources_usage = self.axapi_call('system/resources-usage/oper', 'GET')
         self.logger.info(system_resources_usage)
         self.logger.debug('Exiting get_system_resources_usage_info method')
         return system_resources_usage
@@ -791,7 +791,7 @@ class Acos(object):
         show slb resource-usage
         '''
         self.logger.debug('Entering get_slb_resources_usage method')
-        slb_resource_info = self.axapi_call('slb/resources-usage/oper', 'GET').content.decode()
+        slb_resource_info = self.axapi_call('slb/resources-usage/oper', 'GET')
         self.logger.info(slb_resource_info)
         self.logger.debug('Exiting get_slb_resources_usage method')
         return slb_resource_info
@@ -804,7 +804,7 @@ class Acos(object):
         show resource-accounting all-partitions summary
         '''
         self.logger.debug('Entering get_resources_acct_all_partitions method')
-        # BROKEN schema::get_rescouce_acct_part_info = self.axapi_call('system/resource-accounting/', 'GET').content.decode()
+        # BROKEN schema::get_rescouce_acct_part_info = self.axapi_call('system/resource-accounting/', 'GET')
         resources_acct_all_partitions = (self.clideploy(['show resource-accounting all-partitions summary']))
         self.logger.info(resources_acct_all_partitions)
         self.logger.debug('Exiting get_resources_acct_all_partitions method')
@@ -818,7 +818,7 @@ class Acos(object):
         show resource-accounting global
         '''
         self.logger.debug('Entering get_resource_acct_global method')
-        resource_acct_global = self.axapi_call('system/resource-accounting/oper', 'GET').content.decode()
+        resource_acct_global = self.axapi_call('system/resource-accounting/oper', 'GET')
         self.logger.info(resource_acct_global)
         self.logger.debug('Exiting get_resource_acct_global method')
         return resource_acct_global
@@ -831,7 +831,7 @@ class Acos(object):
         show resource-accounting resource-type app-resources
         '''
         self.logger.debug('Entering get_resource_acct_apps method')
-        # BROKEN schema::resource_acct_apps_info = self.axapi_call('system/resource-accounting/', 'GET').content.decode()
+        # BROKEN schema::resource_acct_apps_info = self.axapi_call('system/resource-accounting/', 'GET')
         resource_acct_apps = (self.clideploy(['show resource-accounting resource-type app-resources']))
         self.logger.info(resource_acct_apps)
         self.logger.debug('Exiting get_resource_acct_apps method')
@@ -845,7 +845,7 @@ class Acos(object):
         show resource-accounting resource-type network-resources
         '''
         self.logger.debug('Entering get_resource_acct_ntwk method')
-        # BROKEN schema::resource_acct_ntwk_info = self.axapi_call('system/resource-accounting/', 'GET').content.decode()
+        # BROKEN schema::resource_acct_ntwk_info = self.axapi_call('system/resource-accounting/', 'GET')
         resource_acct_ntwk = (self.clideploy(['show resource-accounting resource-type app-resources']))
         self.logger.info(resource_acct_ntwk)
         self.logger.debug('Exiting get_resource_acct_ntwk method')
@@ -858,7 +858,7 @@ class Acos(object):
         show system icmp
         '''
         self.logger.debug('Entering get_icmp_stats method')
-        get_icmp_stats = self.axapi_call('system/icmp/stats', 'GET').content.decode()
+        get_icmp_stats = self.axapi_call('system/icmp/stats', 'GET')
         self.logger.info(get_icmp_stats)
         self.logger.debug('Exiting get_icmp_stats method')
         return get_icmp_stats
@@ -870,7 +870,7 @@ class Acos(object):
         show cpu
         '''
         self.logger.debug('Entering get_cpu method')
-        # BROKEN schema::cpu_info = self.axapi_call('system/data-cpu/', 'GET').content.decode()
+        # BROKEN schema::cpu_info = self.axapi_call('system/data-cpu/', 'GET')
         cpu_info = (self.clideploy(['show cpu']))
         self.logger.info(cpu_info)
         self.logger.debug('Exiting get_cpu method')
@@ -883,7 +883,7 @@ class Acos(object):
         show cpu
         '''
         self.logger.debug('Entering get_cpu_load_sharing method')
-        cpu_load_sharing = self.axapi_call('system/cpu-load-sharing', 'GET').content.decode()
+        cpu_load_sharing = self.axapi_call('system/cpu-load-sharing', 'GET')
         self.logger.info(cpu_load_sharing)
         self.logger.debug('Exiting get_cpu_load_sharing method')
         return cpu_load_sharing
@@ -895,7 +895,7 @@ class Acos(object):
         show cpu overall
         '''
         self.logger.debug('Entering get_cpu_overall method')
-        # BROKEN schema::cpu_overall_info = self.axapi_call('system/data-cpu/overall', 'GET').content.decode()
+        # BROKEN schema::cpu_overall_info = self.axapi_call('system/data-cpu/overall', 'GET')
         cpu_overall_info = (self.clideploy(['show cpu overall']))
         self.logger.info(cpu_overall_info)
         self.logger.debug('Exiting get_cpu_overall method')
@@ -908,7 +908,7 @@ class Acos(object):
         show cpu history
         '''
         self.logger.debug('Entering get_cpu_history method')
-        # BROKEN schema::cpu_history = self.axapi_call('system/data-cpu/', 'GET').content.decode()
+        # BROKEN schema::cpu_history = self.axapi_call('system/data-cpu/', 'GET')
         cpu_history = (self.clideploy(['show cpu history']))
         self.logger.info(cpu_history)
         self.logger.debug('Exiting get_cpu_history method')
@@ -921,7 +921,7 @@ class Acos(object):
         show session
         '''
         self.logger.debug('Entering get_session method')
-        # BROKEN schema::session_info = self.axapi_call('system/session/stats', 'GET').content.decode()
+        # BROKEN schema::session_info = self.axapi_call('system/session/stats', 'GET')
         session = (self.clideploy(['show session']))
         self.logger.info(session)
         self.logger.debug('Exiting get_session method')
@@ -934,7 +934,7 @@ class Acos(object):
         show ip route
         '''
         self.logger.debug('Entering get_ip_route method')
-        # BROKEN schema::ip_route = self.axapi_call('hd/', 'GET').content.decode()
+        # BROKEN schema::ip_route = self.axapi_call('hd/', 'GET')
         ip_route = (self.clideploy(['show ip route']))
         self.logger.info(ip_route)
         self.logger.debug('Exiting get_ip_route method')
@@ -947,7 +947,7 @@ class Acos(object):
         show ip stats
         '''
         self.logger.debug('Entering get_ip_stats method')
-        ip_stats = self.axapi_call('ip/stats', 'GET').content.decode()
+        ip_stats = self.axapi_call('ip/stats', 'GET')
         self.logger.info(ip_stats)
         self.logger.debug('Exiting get_ip_stats method')
         return ip_stats
@@ -959,7 +959,7 @@ class Acos(object):
         show slb switch
         '''
         self.logger.debug('Entering get_slb_switch method')
-        slb_switch = self.axapi_call('slb/switch/stats', 'GET').content.decode()
+        slb_switch = self.axapi_call('slb/switch/stats', 'GET')
         self.logger.info(slb_switch)
         self.logger.debug('Exiting get_slb_switch method')
         return slb_switch
@@ -971,7 +971,7 @@ class Acos(object):
         show slb tcp stack
         '''
         self.logger.debug('Entering get_slb_tcp_stack method')
-        # BROKEN schema::get_session_info = self.axapi_call('hd/', 'GET').content.decode()
+        # BROKEN schema::get_session_info = self.axapi_call('hd/', 'GET')
         slb_tcp_stack = (self.clideploy(['show slb tcp stack']))
         self.logger.info(slb_tcp_stack)
         self.logger.debug('Exiting get_slb_tcp_stack method')
@@ -983,7 +983,7 @@ class Acos(object):
 
         '''
         self.logger.debug('Entering get_system_bandwidth_stats method')
-        system_bandwidth_stats = self.axapi_call('hd/', 'GET').content.decode()
+        system_bandwidth_stats = self.axapi_call('hd/', 'GET')
         self.logger.info(system_bandwidth_stats)
         self.logger.debug('Exiting get_system_bandwidth_stats method')
         return system_bandwidth_stats
@@ -995,8 +995,8 @@ class Acos(object):
         show slb ssl error
         '''
         self.logger.debug('Entering get_slb_ssl_error method')
-        # BROKEN schema::get_slb_ssl_error_info = self.axapi_call('hd/', 'GET').content.decode()
-        get_slb_ssl_error_info =  (self.clideploy(['show slb ssl error']))
+        # BROKEN schema::get_slb_ssl_error_info = self.axapi_call('hd/', 'GET')
+        get_slb_ssl_error_info = (self.clideploy(['show slb ssl error']))
         self.logger.info(get_slb_ssl_error_info)
         self.logger.debug('Exiting get_slb_ssl_error method')
         return get_slb_ssl_error_info
@@ -1008,7 +1008,7 @@ class Acos(object):
         show slb ssl stats
         '''
         self.logger.debug('Entering get_slb_ssl_stats method')
-        # BROKEN schema::slb_ssl_stats = self.axapi_call('slb/ssl/stats', 'GET').content.decode()
+        # BROKEN schema::slb_ssl_stats = self.axapi_call('slb/ssl/stats', 'GET')
         slb_ssl_stats = (self.clideploy(['show slb tcp stack']))
         self.logger.info(slb_ssl_stats)
         self.logger.debug('Exiting get_slb_ssl_stats method')
@@ -1021,7 +1021,7 @@ class Acos(object):
         show slb l4
         '''
         self.logger.debug('Entering get_slb_l4 method')
-        slb_l4 = self.axapi_call('slb/l4/stats', 'GET').content.decode()
+        slb_l4 = self.axapi_call('slb/l4/stats', 'GET')
         self.logger.info(slb_l4)
         self.logger.debug('Exiting get_slb_l4 method')
         return slb_l4
@@ -1033,7 +1033,7 @@ class Acos(object):
         show resource-accounting resource-type system-resources
         '''
         self.logger.debug('Entering get_resource_acct_system method')
-        # BROKEN schema::resource_acct_system = self.axapi_call('hd/', 'GET').content.decode()
+        # BROKEN schema::resource_acct_system = self.axapi_call('hd/', 'GET')
         resource_acct_system = (self.clideploy(['show resource-accounting resource-type system-resources']))
         self.logger.info(resource_acct_system)
         self.logger.debug('Exiting get_resource_acct_system method')
@@ -1046,7 +1046,7 @@ class Acos(object):
         show health stat
         '''
         self.logger.debug('Entering get_health_monitor_status method')
-        #health_monitor_status = self.axapi_call('hd/', 'GET').content.decode()
+        #health_monitor_status = self.axapi_call('hd/', 'GET')
         health_monitor_status = (self.clideploy(['show health stat']))
         self.logger.info(health_monitor_status)
         self.logger.debug('Exiting get_health_monitor_status method')
@@ -1059,7 +1059,7 @@ class Acos(object):
         show health down-reason N
         '''
         self.logger.debug('Entering get_health_monitor_reason method')
-        #BROKEN schema: health_monitor_reason = self.axapi_call('health/monitor/stats', 'GET').content.decode()
+        #BROKEN schema: health_monitor_reason = self.axapi_call('health/monitor/stats', 'GET')
         health_monitor_reason= (self.clideploy(['show health down-reason ' + N]))
         self.logger.info(health_monitor_reason)
         self.logger.debug('Exiting get_health_monitor_reason method')
@@ -1072,7 +1072,7 @@ class Acos(object):
         show slb performance
         '''
         self.logger.debug('Entering get_performance method')
-        performance = self.axapi_call('slb/perf/stats', 'GET').content.decode()
+        performance = self.axapi_call('slb/perf/stats', 'GET')
         self.logger.info(performance)
         self.logger.debug('Exiting get_performance method')
         return performance
@@ -1083,7 +1083,7 @@ class Acos(object):
         show log
         '''
         self.logger.debug('Entering get_logging_data method')
-        logging_data = self.axapi_call('syslog/oper', 'GET').content.decode()
+        logging_data = self.axapi_call('syslog/oper', 'GET')
         self.logger.info(logging_data)
         self.logger.debug('Exiting get_logging_data method')
         return logging_data
@@ -1094,7 +1094,7 @@ class Acos(object):
         show run enable-management
         '''
         self.logger.debug('Entering get_management_services method')
-        management_services = json.loads(self.axapi_call('enable-management', 'GET').content.decode())
+        management_services = self.axapi_call('enable-management', 'GET')
         self.logger.info(management_services)
         self.logger.debug('Exiting get_management_services method')
         return management_services
@@ -1105,7 +1105,7 @@ class Acos(object):
         show slb conn-rate-limit src-ip statistics
         '''
         self.logger.debug('Entering get_slb_conn_rate_limit_data method')
-        slb_conn_rate_limit_data = self.axapi_call('slb/common/conn-rate-limit', 'GET').content.decode()
+        slb_conn_rate_limit_data = self.axapi_call('slb/common/conn-rate-limit', 'GET')
         self.logger.info(slb_conn_rate_limit_data)
         self.logger.debug('Exiting get_slb_conn_rate_limit_data method')
         return slb_conn_rate_limit_data
@@ -1116,8 +1116,8 @@ class Acos(object):
         show ip anomaly-drop
         '''
         self.logger.debug('Entering get_ip_anomaly_drop method')
-        ip_anomaly = self.axapi_call('ip/anomaly-drop/stats', 'GET').content.decode()
-        self.logger.info(management_services)
+        ip_anomaly = self.axapi_call('ip/anomaly-drop/stats', 'GET')
+        self.logger.info(ip_anomaly)
         self.logger.debug('Exiting get_ip_anomaly_drop method')
         return ip_anomaly
 
@@ -1127,7 +1127,7 @@ class Acos(object):
         show version
         '''
         self.logger.debug('Entering get_version method')
-        version = self.axapi_call('version/oper', 'GET').content.decode()
+        version = self.axapi_call('version/oper', 'GET')
         self.logger.info(version)
         self.logger.debug('Exiting get_version method')
         return version
@@ -1138,12 +1138,12 @@ class Acos(object):
         show bootimage
         '''
         self.logger.debug('Entering get_bootimage method')
-        bootimage = self.axapi_call('bootimage/oper', 'GET').content.decode()
+        bootimage = self.axapi_call('bootimage/oper', 'GET')
         self.logger.info(bootimage)
         self.logger.debug('Exiting get_bootimage method')
         return bootimage
 
-    def pretty_print_json(self, json):
+    def pretty_json(self, json):
         '''takes a json object and pretty prints it'''
         pretty_json = json.dumps(json, indent=4, sort_keys=True)
         return pretty_json
