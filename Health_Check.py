@@ -86,13 +86,12 @@ def main():
             print(start)
 
         # COMMENTS: Run to collect json-config
-        get_json_cfg = True
+        get_json_cfg = False
         if get_json_cfg == False:
             print("Skipping JSON config")
         else:
             device.build_section_header("JSON CONFIG")
             json_cfg = device.get_json_config()
-            json_cfg = device.pretty_json(json_cfg)
             print(json_cfg)
 
         # REDUNDANCY CHECK: VCS
@@ -114,9 +113,9 @@ def main():
             device.build_section_header("VCS: /vcs/")
             images, summary = device.get_vcs()
             print("a10-url: /vcs/images/")
-            print(images.content)
+            print(images)
             print("a10-url: /vcs/summary")
-            print(summary.content)
+            print(summary)
 
         # REDUNDANCY CHECK: VRRP-A
         # COMMENTS: Run all vrrp-a cmds here for shared partition only
@@ -174,7 +173,7 @@ def main():
         # Health Check
         ##################################################################################
 
-        run_health_check = True
+        run_health_check = False
         if run_health_check == False:
             print("Skipping Health Check session.")
         else:
@@ -421,8 +420,15 @@ class Acos(object):
         if verbose:
             print(r.content)
 
+        # if there is content on the object
         if r.content:
-            r = json.loads(r.content.decode())
+            try:
+                # try to convert it to a JSON / dict object
+                r = json.loads(r.content.decode())
+            except json.decoder.JSONDecodeError:
+                # otherwise just decode the bytes object
+                r = r.content.decode()
+
 
         self.logger.debug('Exiting the axapi_call method')
         return r
@@ -504,9 +510,9 @@ class Acos(object):
         vrrpa_common = self.axapi_call('vrrp-a/common/', 'GET')
         vrrpa_state_stats = self.axapi_call('vrrp-a/state/stats', 'GET')
         self.logger.debug('Exiting get_vrrpa method')
-        return vrrpa, vrrpa_detail.content, vrrpa_common, vrrpa_state_stats
+        return vrrpa, vrrpa_detail, vrrpa_common, vrrpa_state_stats
 
-    def get_vcs_images(self):
+    def get_vcs(self):
         """Return the vcs information for the following cmds:
 
         show vcs images
