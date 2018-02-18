@@ -170,8 +170,6 @@ class Acos(object):
         """
         self.logger.debug('Entering get_vrrpa method')
         vrrpa = self.axapi_call('vrrp-a', 'GET')
-        #vrrpa_common = self.axapi_call('vrrp-a/common/', 'GET')
-
         self.logger.debug('Exiting get_vrrpa method')
         return vrrpa
 
@@ -179,7 +177,7 @@ class Acos(object):
         """gets vrrp-a stats"""
         self.logger.debug('Entering get_vrrpa_stats method')
         vrrpa_stats = self.axapi_call('vrrp-a/state/stats', 'GET')
-        self.logger.debug('Exiting get_vrrpa method')
+        self.logger.debug('Exiting get_vrrpa_stats method')
         return vrrpa_stats
 
     def get_vcs_images(self):
