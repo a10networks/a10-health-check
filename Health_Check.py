@@ -89,8 +89,8 @@ def main():
             get_startup_cfg = False                 # Get startup config for all partitions
             get_running_cfg = False                 # Get running config for all partitions
             get_json_cfg = False                    # Get config for all partitions in JSON format
-            get_vcs = True                         # Get vcs information
-            get_vrrpa = False                       # Get VRRP-a information
+            get_vcs = False                         # Get vcs information
+            get_vrrpa = True                       # Get VRRP-a information
             get_vrrpa_partitions = False            # Get VRRP-a information for all partitions
             get_health_check = False                # Get data from health-check section
             get_interface_info = False              # Get interface/trunk/vlan stats
@@ -186,13 +186,14 @@ def main():
             print("Skipping VRRP-A.")
         else:
             device.build_section_header("VRRP-A: /shared/vrrp-a/:")
-            vrrpa, common, stats = device.get_vrrpa()
+            vrrpa = device.get_vrrpa()
+            vrrpa_stats = device.get_vrrpa_stats()
+
             print("a10-url /vrrp-a/: ")
             print(vrrpa)
-            print("a10-url /vrrp-a/common/: ")
-            print(common)
+
             print("a10-url /vrrp-a/state/stats/: ")
-            print(stats)
+            print(vrrpa_stats)
 
         # REDUNDANCY CHECK: VRRP-A PARTITIONS
         # COMMENTS: Run all cmds for all-partitions

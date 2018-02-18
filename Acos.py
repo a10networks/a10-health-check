@@ -168,11 +168,19 @@ class Acos(object):
         show vrrp-a common
         show vrrp-a state stats
         """
+        self.logger.debug('Entering get_vrrpa method')
         vrrpa = self.axapi_call('vrrp-a', 'GET')
-        vrrpa_common = self.axapi_call('vrrp-a/common/', 'GET')
-        vrrpa_state_stats = self.axapi_call('vrrp-a/state/stats', 'GET')
+        #vrrpa_common = self.axapi_call('vrrp-a/common/', 'GET')
+
         self.logger.debug('Exiting get_vrrpa method')
-        return vrrpa, vrrpa_common, vrrpa_state_stats
+        return vrrpa
+
+    def get_vrrpa_stats(self):
+        """gets vrrp-a stats"""
+        self.logger.debug('Entering get_vrrpa_stats method')
+        vrrpa_stats = self.axapi_call('vrrp-a/state/stats', 'GET')
+        self.logger.debug('Exiting get_vrrpa method')
+        return vrrpa_stats
 
     def get_vcs_images(self):
         """gets a list of vcs images"""
