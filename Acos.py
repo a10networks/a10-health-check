@@ -170,6 +170,7 @@ class Acos(object):
         """
         self.logger.debug('Entering get_vrrpa method')
         vrrpa = self.axapi_call('vrrp-a', 'GET')
+        self.logger.info(vrrpa)
         self.logger.debug('Exiting get_vrrpa method')
         return vrrpa
 
@@ -177,6 +178,7 @@ class Acos(object):
         """gets vrrp-a stats"""
         self.logger.debug('Entering get_vrrpa_stats method')
         vrrpa_stats = self.axapi_call('vrrp-a/state/stats', 'GET')
+        self.logger.info(vrrpa_stats)
         self.logger.debug('Exiting get_vrrpa_stats method')
         return vrrpa_stats
 
@@ -370,6 +372,8 @@ class Acos(object):
         '''
         self.logger.debug('Entering get_fiber_info method')
         # BROKEN schema::interfaces_transceiver = self.axapi_call('network/interface/transceiver', 'GET').content.decode()
+        # try /interface/oper ?
+        # this looks like it grabs that data, i don't have any transceivers so I can't check if the data shows light levels
         # TODO: Update to only run on fiber ports.
         interfaces_transceiver = self.clideploy(['show interfaces transceiver ethernet 9 details'])
         self.logger.info(interfaces_transceiver)
@@ -532,19 +536,6 @@ class Acos(object):
         self.logger.debug('Exiting get_cpu_load_sharing method')
         return cpu_load_sharing
 
-    def get_cpu_overall(self):
-        '''
-        This section will run the following cmd for the CPU
-
-        show cpu overall
-        '''
-        self.logger.debug('Entering get_cpu_overall method')
-        # BROKEN schema::cpu_overall_info = self.axapi_call('system/data-cpu/overall', 'GET')
-        cpu_overall_info = (self.clideploy(['show cpu overall']))
-        self.logger.info(cpu_overall_info)
-        self.logger.debug('Exiting get_cpu_overall method')
-        return cpu_overall_info
-
     def get_cpu_history(self):
         '''
         This section will run the following cmd for the CPU
@@ -610,8 +601,7 @@ class Acos(object):
         show slb tcp stack
         '''
         self.logger.debug('Entering get_slb_tcp_stack method')
-        # BROKEN schema::get_session_info = self.axapi_call('hd/', 'GET')
-        slb_tcp_stack = (self.clideploy(['show slb tcp stack']))
+        slb_tcp_stack = self.axapi_call('system/tcp/stats', 'GET')
         self.logger.info(slb_tcp_stack)
         self.logger.debug('Exiting get_slb_tcp_stack method')
         return slb_tcp_stack

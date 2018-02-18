@@ -90,7 +90,7 @@ def main():
             get_running_cfg = False                 # Get running config for all partitions
             get_json_cfg = False                    # Get config for all partitions in JSON format
             get_vcs = False                         # Get vcs information
-            get_vrrpa = True                       # Get VRRP-a information
+            get_vrrpa = False                       # Get VRRP-a information
             get_vrrpa_partitions = False            # Get VRRP-a information for all partitions
             get_health_check = False                # Get data from health-check section
             get_interface_info = False              # Get interface/trunk/vlan stats
@@ -395,7 +395,7 @@ def main():
                         print(key + ':' + str(value))
 
                 device.build_section_header("Sessions Check::show slb tcp stack:")
-                print("a10-url cli-deploy show slb tcp stack: ")
+                print("a10-url system/tcp: ")
                 print(device.get_slb_tcp_stack())
 
                 device.build_section_header("Sessions Check::show slb ssl error:")
