@@ -152,7 +152,6 @@ def vrrpa_check(device):
         device.build_section_header("Redundancy Check::Partition::" + part + "::show vrrp-a statistics")
         print("a10-url /vrrp-a/state/stats/: ")
         print(vrrpa_stats)
-    exit(1)
 
 
 def hardware_health_check(device):
