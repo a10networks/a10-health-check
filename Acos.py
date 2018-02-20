@@ -86,11 +86,9 @@ class Acos(object):
 
         except json.JSONDecodeError:
             if r.status_code == '204':
-                r = 'HTTP 204'
+                r = {'HTTP RESPONSE CODE': 'HTTP 204'}
             else:
-                r = r.content.decode()
-
-
+                r = {'command output': r.content.decode()}
 
         self.logger.info(r)
         self.logger.debug('Exiting the axapi_call method')
