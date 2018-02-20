@@ -88,6 +88,7 @@ class Acos(object):
             if r.status_code == '204':
                 r = {'HTTP RESPONSE CODE': 'HTTP 204'}
             else:
+                # this sucks, find a way to make it less crap
                 r = {'command output': r.content.decode()}
 
         self.logger.info(r)
@@ -782,5 +783,5 @@ class Acos(object):
 
     def pretty_print_json(self, json_obj):
         '''takes a json object and pretty prints it'''
-        pretty_json = json.dumps(json_obj, indent=4, sort_keys=True)
+        pretty_json = json.dumps(json_obj, indent=4, sort_keys=True, separators=(',', ': '))
         return pretty_json
