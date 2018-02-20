@@ -105,8 +105,9 @@ def get_startup_config(device):
 
     device.build_section_header("ALL-PARTITIONS STARTUP CONFIGURATION")
     run = device.get_startup_configs()
-    print(run)
+    print(device.pretty_print_json(run))
 
+    exit(1)
 
 def get_running_config(device):
     """gets the running config"""
