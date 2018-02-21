@@ -9,7 +9,7 @@ Linux
 
 Windows
 
-    python Health_Check.py -d [device address] -u [username] -p [password] [-vvv]
+    python3 Health_Check.py -d [device address] -u [username] -p [password] [-vvv]
 
 ###Requirements
 * Python 3.x or newer
@@ -17,6 +17,8 @@ Windows
     * argparse
     * requests
     * json
+    * ruamel.yaml
+    * time.sleep
     * urllib3
     * logging
     * datetimerequests
