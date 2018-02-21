@@ -11,21 +11,21 @@ Summary:
 Requires:
     - Python 3.x
     - aXAPI v3
-    - ACOS 4.0 or higher
+    - ACOS 4.1 or higher
 
 Revisions:
     - 0.1 - initial script generation by A10 engineers: Brandon Marlow, Terry Jones
 
 '''
-__version__ = '0.1'
-__author__ = 'A10 Networks'
-
 import argparse
 import urllib3
 import logging
 from Acos import Acos
 from time import sleep
 
+
+__version__ = '0.1'
+__author__ = 'A10 Networks'
 
 parser = argparse.ArgumentParser(description='This program will grab all of the data necessary to do an A10 ACOS SLB health check.')
 devices = parser.add_mutually_exclusive_group()
@@ -63,6 +63,7 @@ def main():
         device.build_section_header("A10 Application Devlivery Controller::AxAPIv3.0")
         device.build_section_header("Data from device at IP::"+device.device)
 
+        # Comment out any sections that are not requested
         get_startup_config(device)
 
         get_running_config(device)
@@ -80,14 +81,13 @@ def main():
         system_resource_check(device)
 
         system_check(device)
-
         sessions_check(device)
 
         system_errors_check(device)
 
         health_monitor_check(device)
 
-        performance_data_check(device)
+        performance_data_check(device, N=5) #Set N to the number of seconds to call the perf data
 
         application_services_check(device)
 
@@ -102,7 +102,6 @@ def main():
 
 def get_startup_config(device):
     """gets the startup config"""
-
     device.build_section_header("ALL-PARTITIONS STARTUP CONFIGURATION")
     start = device.get_startup_configs()
     print(device.pretty_print_json_as_yaml(start))
@@ -110,7 +109,6 @@ def get_startup_config(device):
 
 def get_running_config(device):
     """gets the running config"""
-
     device.build_section_header("RUNNING-CONFIG")
     running = device.get_running_configs()
     print(device.pretty_print_json_as_yaml(running))
@@ -118,7 +116,6 @@ def get_running_config(device):
 
 def get_json_config(device):
     """gets the json config"""
-
     device.build_section_header("JSON CONFIG")
     json_cfg = device.get_json_config()
     print(device.pretty_print_json_as_yaml(json_cfg))
@@ -126,7 +123,6 @@ def get_json_config(device):
 
 def vcs_check(device):
     """gets vcs data"""
-
     device.build_section_header("VCS: /vcs/")
     print(device.pretty_print_json_as_yaml("a10-url: /vcs/images/"))
     print(device.pretty_print_json_as_yaml(device.get_vcs_images()))
@@ -136,13 +132,11 @@ def vcs_check(device):
 
 def vrrpa_check(device):
     """check vrrp-a data"""
-
-    for part in device.partitions:
-        device.change_partition(part)
+    for partition in device.partitions:
+        device.change_partition(partition)
         vrrpa = device.get_vrrpa()
         vrrpa_state = vrrpa['vrrp-a']['state']
         vrrpa_stats = device.get_vrrpa_stats()
-
         device.build_section_header("Redundancy Check::Partition::" + part + "::/vrrp-a/state")
         print(device.pretty_print_json_as_yaml("a10-url /vrrp-a/state: "))
         print(device.pretty_print_json_as_yaml(vrrpa_state))
@@ -152,11 +146,10 @@ def vrrpa_check(device):
         device.build_section_header("Redundancy Check::Partition::" + part + "::show vrrp-a statistics")
         print(device.pretty_print_json_as_yaml("a10-url /vrrp-a/state/stats/: "))
         print(device.pretty_print_json_as_yaml(vrrpa_stats))
-
+    device.change_partition('shared')
 
 def hardware_health_check(device):
-    """does a hardware health check"""
-
+    """Perform hardware health check"""
     device.build_section_header("Health Check::Memory::show memory:")
     print(device.pretty_print_json_as_yaml("a10-url /system/memory/oper: "))
     print(device.pretty_print_json_as_yaml(device.get_memory()))
@@ -164,7 +157,7 @@ def hardware_health_check(device):
     print(device.pretty_print_json_as_yaml("a10-url /hardware: "))
     print(device.pretty_print_json_as_yaml(device.get_hardware()))
     device.build_section_header("Health Check:HW/DISK:CF::show disk:")
-    print(device.pretty_print_json_as_yaml("a10-url /hardware: "))
+    print(device.pretty_print_json_as_yaml("a10-url /hardware/oper: "))
     print(device.pretty_print_json_as_yaml(device.get_disk()))
     device.build_section_header("Health Check::HW/DISK:CF::show slb hw-compression:")
     print(device.pretty_print_json_as_yaml("a10-url /slb/hw-compress/stats: "))
@@ -179,17 +172,22 @@ def hardware_health_check(device):
 
 def interface_trunk_vlan_check(device):
     """gets interface data"""
-
-    device.build_section_header("Interface/Trunk/Vlan::show interfaces:")
-    print(device.pretty_print_json_as_yaml("a10-url /interface/ethernet/stats: "))
-    print(device.pretty_print_json_as_yaml(device.get_interface_ethernet()))
-    device.build_section_header("Interface/Trunk/Vlan::show interfaces ve:")
-    print(device.pretty_print_json_as_yaml("a10-url /interface/ve/stats: "))
-    print(device.pretty_print_json_as_yaml(device.get_interface_ve()))
-    # TODO: need to maybe to check to verify if transceivers are present, else this will give error
-    device.build_section_header("Interface/Trunk/Vlan::show interfaces transceiver eth X details:")
-    print(device.pretty_print_json_as_yaml("a10-url cli-deploy show interfaces transceiver eth X details: "))
-    print(device.pretty_print_json_as_yaml(device.get_interfaces_transceiver()))
+    for partition in device.partitions:
+        device.change_partition(partition)
+        device.build_section_header("Interface/Trunk/Vlan::"+partition+"::show interfaces:")
+        print(device.pretty_print_json_as_yaml("a10-url /interface/ethernet/stats: "))
+        print(device.pretty_print_json_as_yaml(device.get_interface_ethernet()))
+        device.build_section_header("Interface/Trunk/Vlan::"+partition+"::show interfaces ve:")
+        print(device.pretty_print_json_as_yaml("a10-url /interface/ve/stats: "))
+        print(device.pretty_print_json_as_yaml(device.get_interface_ve()))
+        device.build_section_header("Interface/Trunk/Vlan::"+partition+"::show vlans ")
+        print(device.pretty_print_json_as_yaml("a10-url /network/vlan/: "))
+        print(device.pretty_print_json_as_yaml(device.get_vlans()))
+        device.build_section_header("Interface/Trunk/Vlan::"+partition+"::show vlan counters ")
+        print(device.pretty_print_json_as_yaml("a10-url /network/vlan/stats: "))
+        print(device.pretty_print_json_as_yaml(device.get_vlan_stats()))
+    device.change_partition('shared')
+    #Valid cmds for shared partition only
     device.build_section_header("Interface/Trunk/Vlan::show trunk :")
     print(device.pretty_print_json_as_yaml("a10-url /interface/trunk/stats: "))
     print(device.pretty_print_json_as_yaml(device.get_trunk()))
@@ -199,20 +197,17 @@ def interface_trunk_vlan_check(device):
     device.build_section_header("Interface/Trunk/Vlan::show lacp counters ")
     print(device.pretty_print_json_as_yaml("a10-url /network/lacp/stats: "))
     print(device.pretty_print_json_as_yaml(device.get_lacp_counters()))
-    device.build_section_header("Interface/Trunk/Vlan::show vlans ")
-    print(device.pretty_print_json_as_yaml("a10-url /network/vlan/: "))
-    print(device.pretty_print_json_as_yaml(device.get_vlans()))
-    device.build_section_header("Interface/Trunk/Vlan::show vlan counters ")
-    print(device.pretty_print_json_as_yaml("a10-url /network/vlan/stats: "))
-    print(device.pretty_print_json_as_yaml(device.get_vlan_stats()))
-
+    # TODO: need to maybe to check to verify if transceivers are present, else this will give error
+    # TODO: will also need to loop through valid fiber interfaces and pass to get_interfaces_transceiver.
+    device.build_section_header("Interface/Trunk/Vlan::show interfaces transceiver eth X details:")
+    print(device.pretty_print_json_as_yaml("a10-url cli-deploy show interfaces transceiver eth X details: "))
+    print(device.pretty_print_json_as_yaml(device.get_interfaces_transceiver()))
 
 def system_resource_check(device):
     """gets systems resources data"""
     for partition in device.partitions:
         device.change_partition(partition)
         resource_accounting = device.get_resource_acct()
-
         # statically mapping to a list position by index is gross, but Im not smart enough to do it by keyword apparently
         resource_accounting_network = \
         resource_accounting['resource-accounting']['oper']['partition-resource']['partition-name' == partition][
@@ -223,7 +218,6 @@ def system_resource_check(device):
         resource_accounting_system = \
         resource_accounting['resource-accounting']['oper']['partition-resource']['partition-name' == partition][
             'res-type'][2]
-
         device.build_section_header("System Resources::Partition::" + partition + "::System Accounting Applications:")
         print(device.pretty_print_json_as_yaml("a10-url /system/resource-accounting/oper"))
         print(device.pretty_print_json_as_yaml(resource_accounting_apps))
@@ -233,29 +227,25 @@ def system_resource_check(device):
         device.build_section_header("System Resources::Partition::" + partition + "::System Accounting:")
         print(device.pretty_print_json_as_yaml("a10-url /system/resource-accounting/oper"))
         print(device.pretty_print_json_as_yaml(resource_accounting_system))
-        device.build_section_header("System Resources::Partition::" + partition + "System ICMP Stats:")
+        device.build_section_header("System Resources::Partition::" + partition + "::System ICMP Stats:")
         print(device.pretty_print_json_as_yaml("a10-url /system/icmp/stats: "))
         print(device.pretty_print_json_as_yaml(device.get_icmp_stats()))
-        device.build_section_header("System Resources::Partition::" + partition + "System Bandwidth Stats:")
+        device.build_section_header("System Resources::Partition::" + partition + "::System Bandwidth Stats:")
         print(device.pretty_print_json_as_yaml("a10-url /system/bandwidth/stats: "))
         print(device.pretty_print_json_as_yaml(device.get_system_bandwidth_stats()))
-
+    device.change_partition('shared')
 
 def system_check(device):
     """does a systems check"""
-
     device.build_section_header("Sessions Check::CPU::Data CPU:")
     print(device.pretty_print_json_as_yaml("a10-url system/data-cpu/stats: "))
     print(device.pretty_print_json_as_yaml(device.get_data_cpu()))
-
     device.build_section_header("Sessions Check::CPU::Control CPU:")
     print(device.pretty_print_json_as_yaml("a10-url system/control-cpu/stats:"))
     print(device.pretty_print_json_as_yaml(device.get_control_cpu()))
-
     device.build_section_header("Sessions Check::Spikes::show system cpu-load-sharing:")
     print(device.pretty_print_json_as_yaml("a10-url /system/cpu-load-sharing: "))
     print(device.pretty_print_json_as_yaml(device.get_cpu_load_sharing()))
-
     device.build_section_header("Sessions Check::Spikes::show cpu history:")
     print(device.pretty_print_json_as_yaml("a10-url /system/data-cpu/: "))
     print(device.pretty_print_json_as_yaml(device.get_cpu_history()))
@@ -263,27 +253,19 @@ def system_check(device):
 
 def sessions_check(device):
     """gets sessions data"""
+    device.build_section_header("Sessions Check::show system statistics:")
+    print(device.pretty_print_json_as_yaml("a10-url /system/session/stats: "))
+    print(device.pretty_print_json_as_yaml(device.get_session()))
+
     for partition in device.partitions:
         device.change_partition(partition)
-
-        device.build_section_header("Sessions Check::Partition::" + partition + "::show system:")
-        print(device.pretty_print_json_as_yaml("a10-url /system/session/stats: "))
-        print(device.pretty_print_json_as_yaml(device.get_session()))
-
-        device.build_section_header("Sessions Check::Partition::" + partition + "::Routes:")
+        device.build_section_header("Sessions Check::"+partition+"::show ip route:")
         print(device.pretty_print_json_as_yaml("a10-url ip/fib/oper: "))
         print(device.pretty_print_json_as_yaml(device.get_ip_route()))
-
-        device.build_section_header("Sessions Check::Partition::" + partition + "show ip stats:")
+        device.build_section_header("Sessions Check::" + partition + "::show ip stats:")
         print(device.pretty_print_json_as_yaml("a10-url /ip/stats: "))
         print(device.pretty_print_json_as_yaml(device.get_ip_stats()))
-
-        # this may fail on some devices prior to 4.1.1-P6/7
-        device.build_section_header("Sessions Check::show ip anomaly-drop statistics :")
-        print(device.pretty_print_json_as_yaml("a10-url /ip/anomaly-drop/stats"))
-        print(device.pretty_print_json_as_yaml(device.get_ip_anomaly_drop()))
-
-        device.build_section_header("Sessions Check::show slb switch (TCP STATS):")
+        device.build_section_header("Sessions Check::"+partition+"show slb switch (TCP STATS):")
         print(device.pretty_print_json_as_yaml("a10-url /slb/switch/stats"))
         switch_stats = device.get_slb_switch()
         switch_stats = switch_stats['switch']['stats']
@@ -291,70 +273,84 @@ def sessions_check(device):
             if 'tcp' in key:
                 print(device.pretty_print_json_as_yaml(key + ':' + str(value)))
 
-        device.build_section_header("Sessions Check::show slb switch (UDP STATS):")
+        device.build_section_header("Sessions Check::"+partition+"show slb switch (UDP STATS):")
         print(device.pretty_print_json_as_yaml("a10-url /slb/switch/stats: "))
         for key, value in switch_stats.items():
             if 'udp' in key:
                 print(device.pretty_print_json_as_yaml(key + ':' + str(value)))
 
-        device.build_section_header("Sessions Check::show slb tcp stack:")
+        device.build_section_header("Sessions Check::"+partition+"show slb tcp stack:")
         print("a10-url system/tcp: ")
         print(device.pretty_print_json_as_yaml(device.get_slb_tcp_stack()))
 
-        device.build_section_header("Sessions Check::show slb ssl error:")
+        device.build_section_header("Sessions Check::"+partition+"show slb ssl error:")
         print("a10-url cli-deploy show slb ssl error: ")
         print(device.pretty_print_json_as_yaml(device.get_slb_ssl_error()))
 
-        device.build_section_header("Sessions Check::show slb ssl stats:")
+        device.build_section_header("Sessions Check::"+partition+"show slb ssl stats:")
         print("a10-url cli-deploy show slb ssl stats: ")
         print(device.pretty_print_json_as_yaml(device.get_slb_ssl_stats()))
 
-        device.build_section_header("Sessions Check::show slb l4 detail:")
+        device.build_section_header("Sessions Check::"+partition+"show slb l4 detail:")
         print("a10-url /slb/l4/stats: ")
         print(device.pretty_print_json_as_yaml(device.get_slb_l4()))
-
+    device.change_partition('shared')
+    # this may fail on some devices prior to 4.1.1-P6/7, shared partition only
+    device.build_section_header("Sessions Check::show ip anomaly-drop statistics :")
+    print(device.pretty_print_json_as_yaml("a10-url /ip/anomaly-drop/stats"))
+    print(device.pretty_print_json_as_yaml(device.get_ip_anomaly_drop()))
 
 def system_errors_check(device):
     """gets systems errors data"""
-
-    device.build_section_header("System Errors: /system/ :")
-    device.build_section_header("Sessions Check::show resource-accounting resource-type system-resources:")
-    print("a10-url /system/errors: ")
-    # TODO: Only print out the logs with ERROR/CRITICAL/WARNING
-    print(device.pretty_print_json_as_yaml(device.get_logging_data()))
+    device.build_section_header(" System Errors::show log | i Errors: ")
+    print("a10-url syslog/oper: ")
+    logs = device.pretty_print_json_as_yaml(device.get_logging_data())
+    updated_log = []
+    for line in logs:
+        if line == ('Error' or 'Critical' or 'Warning'):
+            updated_log = updated_log.append(line)
+    print(updated_log)
 
 
 def health_monitor_check(device):
     """gets health monitor data"""
+    for partition in device.partitions:
+        device.build_section_header(" Health Monitor Status::"+partition+"show health monitor: ")
+        print("a10-url /health/monitor: ")
+        print(device.pretty_print_json_as_yaml(device.get_health_monitor()))
+        device.build_section_header("Health Monitor Status::"+partition+"show health stat:")
+        print("a10-url cli-deploy show health stat: ")
+        print(device.pretty_print_json_as_yaml(device.get_health_monitor_status()))
+        device.build_section_header("Health Monitor Status::"+partition+"show health down-reason N:")
+        # TODO: will need to check for downed resources, get a list of down servers, get reason, then run cmd
+        print("a10-url cli-deploy show health down-reason N: ")
+        print(device.pretty_print_json_as_yaml(device.get_health_monitor_reason('15')) ) # Static for now
+    device.change_partition('shared')
 
-    device.build_section_header("Health Monitor Status::show health stat:")
-    # TODO: Add the partition loop to check all paritions
-    print("a10-url cli-deploy show health stat: ")
-    print(device.pretty_print_json_as_yaml(device.get_health_monitor_status()))
-    device.build_section_header("Health Monitor Status::show health down-reason N:")
-    # TODO: will need to check for downed resources, get a list of down servers, get reason, then run cmd
-    print("a10-url cli-deploy show health down-reason N: ")
-    print(device.pretty_print_json_as_yaml(device.get_health_monitor_reason('15')) ) # Static for now
-
-
-def performance_data_check(device):
+def performance_data_check(device, N):
     """gets performance data"""
     device.build_section_header("Performance Data: /system/performance:")
-    # TODO: this cmd will require a loop and execute for t seconds, where t = 60 (but configurable).
-    N = 5  # Number of seconds to collect the performance data
     i = 0  # Iterator
     print("a10-url /system/performance: ")
     for i in range(0, N):
         print(device.pretty_print_json_as_yaml(device.get_performance()))
         sleep(1.0)
-        N = N - 1
+        N-= 1
 
 
 def application_services_check(device):
-    device.build_section_header('APPLICATION SERVICES CHECK')
+    device.build_section_header('Application Services')
+    device.build_section_header("Application Services::show slb server:")
+    print("a10-url /slb/server/oper: ")
+    print(device.pretty_print_json_as_yaml(device.get_slb_server_oper()))
+    device.build_section_header("Application Services::show slb service-group:")
+    print("a10-url /slb/service-group/oper: ")
+    print(device.pretty_print_json_as_yaml(device.get_slb_service_group_oper()))
+    device.build_section_header("Application Services::show slb virtual-server:")
+    print("a10-url /slb/virtual-server/oper: ")
+    print(device.pretty_print_json_as_yaml(device.get_slb_virtual_server_oper()))
     # iterate through each partition
     for partition in device.partitions:
-
         # change to the first partition
         device.change_partition(partition)
         device.build_section_header('PARTITION: ' + partition)
@@ -382,7 +378,6 @@ def application_services_check(device):
         service_groups = []
         # get the json list of service-groups
         slb_service_groups = device.get_slb_service_groups()
-
 
         try:
             # for each service-group in the list (if it isn't empty) add the name as a value
@@ -456,7 +451,6 @@ def version_check(device):
     ##################################################################################
     # COMMENTS: Always run logoff to ensure proper clean-up. If sessions are not closed, the login users
     # will be exceeded and the script can fail due to the maximum number of logins exceeded
-
 
 if __name__ == '__main__':
     main()
