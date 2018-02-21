@@ -8,6 +8,7 @@ import ruamel.yaml as yaml
 
 # Class for making all device calls using AxAPI v3.0
 class Acos(object):
+    """represent the A10 device that is connected"""
     def __init__(self, device, username, password, verbose):
         self.device = device
         self.username = username
