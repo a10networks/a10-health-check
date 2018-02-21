@@ -3,10 +3,12 @@ from requests.exceptions import HTTPError
 import datetime
 import json
 import logging
+import ruamel.yaml as yaml
 
 
 # Class for making all device calls using AxAPI v3.0
 class Acos(object):
+    """represent the A10 device that is connected"""
     def __init__(self, device, username, password, verbose):
         self.device = device
         self.username = username
@@ -80,19 +82,22 @@ class Acos(object):
             r = requests.get(url, headers=self.headers, verify=False)
         elif method == 'POST':
             r = requests.post(url, data=json.dumps(payload), headers=self.headers, verify=False)
-
         try:
             r = json.loads(r.content.decode())
 
         except json.JSONDecodeError:
-            if r.status_code == '204':
+            if r.status_code == 200 and r.content.decode() == '':
+                r = ''
+            elif r.status_code == 204:
                 r = {'HTTP RESPONSE CODE': 'HTTP 204'}
             else:
                 # this sucks, find a way to make it less crap
                 r = {'command output': r.content.decode()}
 
+
         self.logger.info(r)
         self.logger.debug('Exiting the axapi_call method')
+
         return r
 
     def clideploy(self, commands):
@@ -107,21 +112,21 @@ class Acos(object):
 
     def get_startup_configs(self):
         """Returns the startup configuration for an A10 device. Uses cli-deploy method."""
-        self.start_config_all_parts = self.clideploy(['show startup-config all-partitions'])
+        start_config_all_parts = self.clideploy(['show startup-config all-partitions'])
         self.logger.debug('Exiting get_startup_configs method')
-        return self.start_config_all_parts
+        return start_config_all_parts
 
     def get_running_configs(self):
         """Returns the running configuration for an A10 device. Uses cli-deploy method."""
-        self.run_config_with_def_all_parts = self.clideploy(['show running with-default partition-config all'])
+        run_config_with_def_all_parts = self.clideploy(['show running with-default partition-config all'])
         self.logger.debug('Exiting get_running_config method')
-        return self.run_config_with_def_all_parts
+        return run_config_with_def_all_parts
 
     def get_json_config(self):
         """Returns the json configuration for an A10 device. Uses cli-deploy method."""
-        self.run_json_config = (self.clideploy(['show json-config']))
+        run_json_config = (self.clideploy(['show json-config']))
         self.logger.debug('Exiting get_json_config method')
-        return self.run_json_config
+        return run_json_config
 
     def build_section_header(self, section):
         """prints section headers"""
@@ -781,7 +786,21 @@ class Acos(object):
         self.logger.debug('Exiting get_bootimage method')
         return bootimage
 
-    def pretty_print_json(self, json_obj):
-        '''takes a json object and pretty prints it'''
-        pretty_json = json.dumps(json_obj, indent=4, sort_keys=True, separators=(',', ': '))
-        return pretty_json
+    def pretty_print_json_as_yaml(self, dict):
+        '''takes a json object and pretty prints it as yaml'''
+
+        # the dict top level is 'command output' we know it is from clideploy and just a bunch of text
+        # so we pretty it up
+        try:
+            body = dict['command output']
+            body = str.replace(body, '!', '')
+            body = str.replace(body, 'exit-module', '')
+            body = str.replace(body, '\r\n', '\n')
+            body_list = body.split('\n')
+            myyaml = {'command output': body_list}
+            pretty_yaml = yaml.round_trip_dump(myyaml)
+
+        except:
+            pretty_yaml = yaml.round_trip_dump(dict)
+
+        return pretty_yaml
