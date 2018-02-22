@@ -528,6 +528,9 @@ class Acos(object):
         self.logger.debug('Exiting get_resource_acct_system method')
         return resource_acct_system
 
+
+    def get_health_monitor_status(self):
+        """show health stat"""
     def get_health_monitor_status(self):
         """show health stat"""
         self.logger.debug('Entering get_health_monitor_status method')

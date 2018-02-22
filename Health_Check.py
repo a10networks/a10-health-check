@@ -64,7 +64,7 @@ def main():
         device.build_section_header("Data from device at IP::"+device.device)
 
         # Comment out any sections that are not requested
-        #get_startup_config(device)
+        get_startup_config(device)
 
         #get_running_config(device)
 
@@ -80,15 +80,14 @@ def main():
 
         #system_resource_check(device)
 
-        #system_check(device)
-
-        #sessions_check(device)
+        system_check(device)
+        sessions_check(device)
 
         system_errors_check(device)
 
         #health_monitor_check(device)
 
-        #performance_data_check(device, 5) #Set N to the number of seconds to call the perf data
+        performance_data_check(device, N=5) #Set N to the number of seconds to call the perf data
 
         #application_services_check(device)
 
@@ -300,7 +299,6 @@ def sessions_check(device):
     device.build_section_header("Sessions Check::show ip anomaly-drop statistics :")
     print(device.pretty_print_json_as_yaml("a10-url /ip/anomaly-drop/stats"))
     print(device.pretty_print_json_as_yaml(device.get_ip_anomaly_drop()))
-
 
 def system_errors_check(device):
     """gets systems errors data"""
