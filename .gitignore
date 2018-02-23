@@ -1,3 +1,4 @@
 #ignore pycharm and compiled python folders
 .idea/
 __pycache__/
+Acos\.pyc
