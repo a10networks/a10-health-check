@@ -572,7 +572,7 @@ class Acos(object):
         self.logger.debug('Exiting get_health_stat method')
         return health_stat
 
-    def get_hm_down_reasons(self):
+    def get_hm_down_reasons(self, healthstatvalues):
         list_of_down_reasons = []
         down_reasons = []
         commands = 'show health stat'
