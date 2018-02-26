@@ -81,11 +81,9 @@ def main():
 
         # run each of the methods, with the appropriate amount of delay
         # if you want to run specific methods, comment out this for loop and call them below
-        #for method in methods:
-        #    sleep(wait)
-        #    method(device)
-
-        healthcheck.health_monitor_check(device)
+        for method in methods:
+            sleep(wait)
+            method(device)
 
         # example individual call
         # healthcheck.get_running_config(device)
@@ -95,7 +93,7 @@ def main():
 
 
 class HealthCheck(object):
-
+    """health check methods"""
 
     def get_startup_config(self, device):
         """gets the startup config"""
@@ -103,20 +101,17 @@ class HealthCheck(object):
         start = device.get_startup_configs()
         print(device.pretty_print_json_as_yaml(start))
 
-
     def get_running_config(self, device):
         """gets the running config"""
         device.build_section_header("RUNNING-CONFIG")
         running = device.get_running_configs()
         print(device.pretty_print_json_as_yaml(running))
 
-
     def get_json_config(self, device):
         """gets the json config"""
         device.build_section_header("JSON CONFIG")
         json_cfg = device.get_json_config()
         print(device.pretty_print_json_as_yaml(json_cfg))
-
 
     def vcs_check(self, device):
         """gets vcs data"""
@@ -125,7 +120,6 @@ class HealthCheck(object):
         print(device.pretty_print_json_as_yaml(device.get_vcs_images()))
         print(device.pretty_print_json_as_yaml("a10-url: /vcs/summary"))
         print(device.pretty_print_json_as_yaml(device.get_vcs_summary()))
-
 
     def vrrpa_check(self, device):
         """check vrrp-a data"""
@@ -144,7 +138,6 @@ class HealthCheck(object):
             print(device.pretty_print_json_as_yaml("a10-url /vrrp-a/state/stats/: "))
             print(device.pretty_print_json_as_yaml(vrrpa_stats))
         device.change_partition('shared')
-
 
     def hardware_health_check(self, device):
         """Perform hardware health check"""
@@ -166,7 +159,6 @@ class HealthCheck(object):
         device.build_section_header("Health Check::HW/DISK:CF::Full System Tree")
         print(device.pretty_print_json_as_yaml("a10-url /sytem/oper: "))
         print(device.pretty_print_json_as_yaml(device.get_system_oper()))
-
 
     def interface_trunk_vlan_check(self, device):
         """gets interface data"""
@@ -202,7 +194,6 @@ class HealthCheck(object):
             print(device.pretty_print_json_as_yaml(device.get_vlan_stats()))
         device.change_partition('shared')
 
-
     def system_resource_check(self, device):
         """gets systems resources data"""
         for partition in device.partitions:
@@ -229,7 +220,6 @@ class HealthCheck(object):
             print(device.pretty_print_json_as_yaml(device.get_system_bandwidth_stats()))
         device.change_partition('shared')
 
-
     def system_check(self, device):
         """does a systems check"""
         device.build_section_header("Sessions Check::CPU::Data CPU:")
@@ -244,7 +234,6 @@ class HealthCheck(object):
         device.build_section_header("Sessions Check::Spikes::show cpu history:")
         print(device.pretty_print_json_as_yaml("a10-url /system/data-cpu/: "))
         print(device.pretty_print_json_as_yaml(device.get_cpu_history()))
-
 
     def sessions_check(self, device):
         """gets sessions data"""
@@ -295,7 +284,6 @@ class HealthCheck(object):
         print(device.pretty_print_json_as_yaml("a10-url /ip/anomaly-drop/stats"))
         print(device.pretty_print_json_as_yaml(device.get_ip_anomaly_drop()))
 
-
     def system_errors_check(self, device):
         """gets systems errors data"""
         device.build_section_header(" System Errors::show log | i Errors: ")
@@ -305,7 +293,6 @@ class HealthCheck(object):
         for line in logs:
             if any(word in line for word in keyword_list):
                 print(line)
-
 
     def health_monitor_check(self, device):
         """gets health monitor data"""
@@ -325,9 +312,8 @@ class HealthCheck(object):
                 dr_list.remove('0')
             else:
                 for dr in list(set(dr_list)):
-                    print(device.pretty_print_json_as_yaml(device.get_health_monitor_reason(dr)) )
+                    print(device.pretty_print_json_as_yaml(device.get_health_monitor_reason(dr)))
         device.change_partition('shared')
-
 
     def performance_data_check(self, device):
         """gets performance data"""
@@ -338,7 +324,6 @@ class HealthCheck(object):
             print(device.pretty_print_json_as_yaml(device.get_performance()))
             sleep(1.0)
             args.repeat -= 1
-
 
     def application_services_check(self, device):
         device.build_section_header('Application Services')
@@ -420,12 +405,10 @@ class HealthCheck(object):
 
         device.change_partition('shared')
 
-
     def monitoring_check(self, device):
         device.build_section_header('Monitoring Review::show run logging')
         print("a10-url /logging: ")
         print(device.pretty_print_json_as_yaml(device.get_logging()))
-
 
     def security_check(self, device):
         """gets the information for the security check"""
@@ -438,7 +421,6 @@ class HealthCheck(object):
         device.build_section_header('Security Check::show ip anomaly-drop statistics')
         print("a10-url ip/anomaly-drop/stats: ")
         print(device.pretty_print_json_as_yaml(device.get_ip_anomaly_drop()))
-
 
     def version_check(self, device):
         """gets the information for the version check"""
