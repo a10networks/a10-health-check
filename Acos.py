@@ -528,9 +528,6 @@ class Acos(object):
         self.logger.debug('Exiting get_resource_acct_system method')
         return resource_acct_system
 
-
-    def get_health_monitor_status(self):
-        """show health stat"""
     def get_health_monitor_status(self):
         """show health stat"""
         self.logger.debug('Entering get_health_monitor_status method')
@@ -549,11 +546,11 @@ class Acos(object):
         self.logger.debug('Exiting get_health_monitor method')
         return health_monitor
 
-    def get_health_monitor_reason(self, N):
+    def get_health_monitor_reason(self, n):
         """show health down-reason N"""
         self.logger.debug('Entering get_health_monitor_reason method')
         # BROKEN schema: health_monitor_reason = self.axapi_call('health/monitor/stats', 'GET')
-        health_monitor_reason= (self.clideploy(['show health down-reason ' + N]))
+        health_monitor_reason = (self.clideploy(['show health down-reason ' + n]))
         self.logger.info(health_monitor_reason)
         self.logger.debug('Exiting get_health_monitor_reason method')
         return health_monitor_reason
@@ -591,7 +588,6 @@ class Acos(object):
                 down_reasons.append(line)
         return list(set(down_reasons))
 
-
     def get_performance(self):
         """show slb performance"""
         self.logger.debug('Entering get_performance method')
@@ -599,7 +595,6 @@ class Acos(object):
         self.logger.info(performance)
         self.logger.debug('Exiting get_performance method')
         return performance
-
 
     def get_logging_data(self):
         """show log"""
@@ -609,7 +604,6 @@ class Acos(object):
         self.logger.debug('Exiting get_logging_data method')
         return logging_data
 
-
     def get_logging(self):
         """show log"""
         self.logger.debug('Entering get_logging method')
@@ -618,14 +612,12 @@ class Acos(object):
         self.logger.debug('Exiting get_logging method')
         return logging
 
-
     def get_management_services(self):
         """show run enable-management"""
         self.logger.debug('Entering get_management_services method')
         management_services = self.axapi_call('enable-management', 'GET')
         self.logger.debug('Exiting get_management_services method')
         return management_services
-
 
     def get_slb_conn_rate_limit_data(self):
         """show slb conn-rate-limit src-ip statistics"""
@@ -635,7 +627,6 @@ class Acos(object):
         self.logger.debug('Exiting get_slb_conn_rate_limit_data method')
         return slb_conn_rate_limit_data
 
-
     def get_ip_anomaly_drop(self):
         """show ip anomaly-drop"""
         self.logger.debug('Entering get_ip_anomaly_drop method')
@@ -643,7 +634,6 @@ class Acos(object):
         self.logger.info(ip_anomaly)
         self.logger.debug('Exiting get_ip_anomaly_drop method')
         return ip_anomaly
-
 
     def get_version(self):
         """show version"""
@@ -653,7 +643,6 @@ class Acos(object):
         self.logger.debug('Exiting get_version method')
         return version
 
-
     def get_bootimage(self):
         """show bootimage"""
         self.logger.debug('Entering get_bootimage method')
@@ -661,7 +650,6 @@ class Acos(object):
         self.logger.info(bootimage)
         self.logger.debug('Exiting get_bootimage method')
         return bootimage
-
 
     def pretty_print_json_as_yaml(self, dict):
         """takes a json object and pretty prints it as yaml"""
