@@ -307,6 +307,7 @@ class HealthCheck(object):
             print(device.pretty_print_json_as_yaml(health_stat))
             device.build_section_header("Health Monitor Status::" + partition + "::show health down-reason N:")
             print("a10-url cli-deploy show health down-reason N: ")
+            # the health_stat.values() is passed to the other method, but not used.  That seems incorrect.
             dr_list = device.get_hm_down_reasons(health_stat.values())
             if '0' in dr_list:
                 dr_list.remove('0')
