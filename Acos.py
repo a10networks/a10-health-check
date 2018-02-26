@@ -578,19 +578,19 @@ class Acos(object):
     def get_hm_down_reasons(self, health_stat):
         list_of_down_reasons = []
         down_reasons = []
-        url = self.base_url + 'clideploy'
-        payload = {'CommandList': ['show health stat']}
-        r = requests.post(url, data=json.dumps(payload), headers=self.headers, verify=False)
-        health_stat = r.content.decode().split('\n')
+        commands = 'show health stat'
+        r = self.clideploy([commands])
+        health_stat = r['command output']
+
         for line in health_stat:
             if 'DOWN' in line:
-                #print(line)
                 pntr = (line.find("/"))
                 list_of_down_reasons.append(line[pntr + 1:pntr + 3])
         for line in list_of_down_reasons:
             if re.match('[0-9]', line) is not None:
                 down_reasons.append(line)
         return list(set(down_reasons))
+
 
     def get_performance(self):
         """show slb performance"""
