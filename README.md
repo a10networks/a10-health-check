@@ -14,7 +14,7 @@ Linux
     
   Windows
 
-    python3 Health_Check.py -d [device address] -u [username] -p [password] [-vvv]
+    python3 Health_Check.py -d [device address] -u [username] -p [password] [-vvv] -w [n] -r [x]
 
 where
     -d - Device(s) under test. Multiple devices may be included separated by a comma.
