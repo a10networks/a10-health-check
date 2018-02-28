@@ -82,8 +82,8 @@ def main():
         methods = []
 
         # iterate through each of the method tuples (name, method) and extract the method
-        for tuple in methods_tuples:
-             methods.append(tuple[1])
+        for method_tuple in methods_tuples:
+            methods.append(method_tuple[1])
 
         # run each of the methods, with the appropriate amount of delay
         # if you want to run specific methods, comment out this for loop and call them below
