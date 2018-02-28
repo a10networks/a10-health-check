@@ -1,6 +1,10 @@
 '''
 Summary:    This script contains a class that will pull configuration and operational
-            from an A10 device running AxAPI v3.0
+            output from an A10 device running AxAPI v3.0
+
+Revisions:
+            Date        Changes
+            2.28.2018   Initial release: bmarlow, tjones
 
 
 '''
@@ -13,7 +17,7 @@ import ruamel.yaml as yaml
 import re
 
 
-__version__ = '0.1'
+__version__ = '1.0'
 __author__ = 'A10 Networks'
 
 # Class for making all device calls using AxAPI v3.0
@@ -572,7 +576,7 @@ class Acos(object):
         self.logger.debug('Exiting get_health_stat method')
         return health_stat
 
-    def get_hm_down_reasons(self, healthstatvalues):
+    def get_hm_down_reasons(self):
         list_of_down_reasons = []
         down_reasons = []
         commands = 'show health stat'
