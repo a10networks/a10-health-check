@@ -2,19 +2,22 @@
 
 '''
 Summary:
-    This script will generate a report file based on the A10 Health Check. This script is only meant to run every
-    command as found in the health check.
+    This script will generate a report file based on the A10 Health Check. This script was writtien to run every
+    command as found in the A10 Health Check document.
 
     Eventual plans will be to make assessments based on the generated report, however, today the report must be
-    reviewed by a qualified engineer manually.
+    reviewed by a qualified A10 expert manually.
 
 Requires:
     - Python 3.x
     - aXAPI v3
     - ACOS 4.1 or higher
+    - See additional libraries required on github repo.
 
 Revisions:
-    - 0.1 - initial script generation by A10 engineers: Brandon Marlow, Terry Jones
+            Date        Changes
+            2.28.2018   Initial release: bmarlow, tjones
+
 
 '''
 import argparse
@@ -23,14 +26,15 @@ import logging
 import inspect
 from Acos import Acos
 from time import sleep
+import datetime
 
 
-__version__ = '0.1'
+__version__ = '1.0'
 __author__ = 'A10 Networks'
 
 parser = argparse.ArgumentParser(description='This program will grab all of the data necessary to do an A10 ACOS SLB health check.')
 devices = parser.add_mutually_exclusive_group()
-devices.add_argument('-d', '--device', default='192.168.0.152', help='A10 device hostname or IP address. Multiple devices may be included seperated by a comma.')
+devices.add_argument('-d', '--device', default='192.168.0.152', help='A10 device hostname or IP address. Multiple devices may be included separated by a comma.')
 parser.add_argument('-p', '--password', default='a10', help='user password')
 parser.add_argument('-u', '--username', default='admin', help='username (default: admin)')
 parser.add_argument('-w', '--wait', default=1, type=int, help='How long to delay each API call, longer delays may help to avoid control CPU spikes')
@@ -55,6 +59,8 @@ def main():
 
     # set the default logging format
     logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
+
+    print('\n\nHealth Check script started at: ', datetime.datetime.now(),'\n\n')
 
     for device in devices:
         device = Acos(device, username, password, verbose)
@@ -90,6 +96,7 @@ def main():
 
 
         device.auth_logoff(token)
+        print('\n\nHealth Check Script ended at: ', datetime.datetime.now(), '\n\n')
 
 
 class HealthCheck(object):
@@ -308,7 +315,7 @@ class HealthCheck(object):
             device.build_section_header("Health Monitor Status::" + partition + "::show health down-reason N:")
             print("a10-url cli-deploy show health down-reason N: ")
             # the health_stat.values() is passed to the other method, but not used.  That seems incorrect.
-            dr_list = device.get_hm_down_reasons(health_stat.values())
+            dr_list = device.get_hm_down_reasons()
             if '0' in dr_list:
                 dr_list.remove('0')
             else:
