@@ -9,20 +9,18 @@ Revisions:
 
 '''
 import requests
-from requests.exceptions import HTTPError
 import datetime
 import json
 import logging
 import ruamel.yaml as yaml
 import re
 
-
 __version__ = '1.0'
 __author__ = 'A10 Networks'
 
-# Class for making all device calls using AxAPI v3.0
+
 class Acos(object):
-    """represent the A10 device that is connected"""
+    """Class for making all device calls using AxAPI v3.0"""
     def __init__(self, device, username, password, verbose):
         self.device = device
         self.username = username
@@ -56,10 +54,15 @@ class Acos(object):
         authorization = self.axapi_call('auth', 'POST', payload)
         try:
             auth_token = authorization['authresponse']['signature']
-        except TypeError:
-            self.logger.error('The following error occurred while authenticating')
-            self.logger.error('\n' + authorization)
+        except:
+            # if the logon fails try to capture the error message from the response JSON then quit
+            try:
+                self.logger.error('The following error was received while authenticating: ' + authorization['response']['err']['msg'])
+                self.logger.error('Please check your credentials and then try again.')
+            except Exception as e:
+                self.logger.error('The following error occurred: ' + str(e))
             exit(1)
+
         self.headers['Authorization'] = 'A10 ' + auth_token
         self.logger.debug('Exiting the auth method')
         return auth_token
@@ -80,12 +83,36 @@ class Acos(object):
         self.logger.debug('Entering the axapi_call method')
         url = self.base_url + module
         if method == 'GET':
-            r = requests.get(url, headers=self.headers, verify=False)
+            try:
+                r = requests.get(url, headers=self.headers, verify=False)
+            except requests.ConnectionError:
+                # if there is a connection error catch it
+                self.logger.error('A connection error occurred connecting the the following url: ' + url)
+                self.logger.error('Please make sure that the device API service is reachable.')
+                exit(1)
+
+            except Exception as e:
+                # if for some reason we missed the above catch, let the user know what went wrong
+                # formatting will most likely be ugly
+                self.logger.error('The following error was received making your request: ' + str(e))
+                exit(1)
         elif method == 'POST':
-            r = requests.post(url, data=json.dumps(payload), headers=self.headers, verify=False)
+            try:
+                r = requests.post(url, data=json.dumps(payload), headers=self.headers, verify=False)
+            except requests.ConnectionError:
+                # if there is a connection error catch it
+                self.logger.error('A connection error occurred connecting the the following url: ' + url)
+                self.logger.error('Please make sure that the device API service is reachable.')
+                exit(1)
+
+            except Exception as e:
+                # if for some reason we missed the above catch, let the user know what went wrong
+                # formatting will most likely be ugly
+                self.logger.error('The following error was received making your request: ' + str(e))
+                exit(1)
         try:
             r = json.loads(r.content.decode())
-        except json.JSONDecodeError:
+        except ValueError:
             if r.status_code == 200 and r.content.decode() == '':
                 r = ''
             elif r.status_code == 204:
@@ -154,7 +181,7 @@ class Acos(object):
             payload = {'active-partition': {'curr_part_name': partition}}
             set_partition = self.axapi_call('active-partition/' + partition, 'POST', payload)
             # print("Status code for change_partition: ", set_partition.status_code)
-        except HTTPError:
+        except requests.HTTPError:
             logging.debug('Issue changing partition to ', partition)
         else:
             # print(partition,' partition response: ', set_partition.content)

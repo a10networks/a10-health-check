@@ -5,7 +5,8 @@ This health check was written to automate the A10 Health Check document (provide
 
 With this script, the time required to collect the data goes from hours to minutes. The output created can then be reviewed by an A10 expert who can verify the health of the systems and identify any potential issues.
 
-###Running the Health Check
+
+### Running the Health Check
 
 Linux
 
@@ -23,7 +24,7 @@ where
     -r - the number of times to repeat a command. (A few of the calls will loop for x times). 
          For example, if x is 60, 'show slb performance' is repeated for 1 minute. 
 
-###Requirements
+### Requirements
 * ACOS v4.x or newer (AxAPIv3 is required). 
 * Python 3.x or newer
 * The following libraries
@@ -36,5 +37,3 @@ where
     * datetimerequests
     * inspect
     * re
-
-
