@@ -33,7 +33,6 @@ where
     * json
     * ruamel.yaml
     * time.sleep
-    * urllib3
     * logging
     * datetimerequests
     * inspect

@@ -9,7 +9,6 @@ Revisions:
 
 '''
 import requests
-from requests.exceptions import HTTPError
 import datetime
 import json
 import logging
@@ -182,7 +181,7 @@ class Acos(object):
             payload = {'active-partition': {'curr_part_name': partition}}
             set_partition = self.axapi_call('active-partition/' + partition, 'POST', payload)
             # print("Status code for change_partition: ", set_partition.status_code)
-        except HTTPError:
+        except requests.HTTPError:
             logging.debug('Issue changing partition to ', partition)
         else:
             # print(partition,' partition response: ', set_partition.content)
