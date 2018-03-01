@@ -21,7 +21,7 @@ Revisions:
 
 '''
 import argparse
-import requests
+import urllib3
 import logging
 import inspect
 from Acos import Acos
@@ -55,13 +55,12 @@ except Exception as e:
 
 
 def main():
-    requests.packages.urllib3.disable_warnings()
+    urllib3.disable_warnings()
 
     # set the default logging format
     logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
 
-    start = datetime.datetime.now()
-    print('\n\nHealth Check script started at: ' + str(start) + '\n\n')
+    print('\n\nHealth Check script started at: ', datetime.datetime.now(),'\n\n')
 
     for device in devices:
         device = Acos(device, username, password, verbose)
@@ -83,8 +82,8 @@ def main():
         methods = []
 
         # iterate through each of the method tuples (name, method) and extract the method
-        for method_tuple in methods_tuples:
-            methods.append(method_tuple[1])
+        for tuple in methods_tuples:
+             methods.append(tuple[1])
 
         # run each of the methods, with the appropriate amount of delay
         # if you want to run specific methods, comment out this for loop and call them below
@@ -97,10 +96,7 @@ def main():
 
 
         device.auth_logoff(token)
-    end = datetime.datetime.now()
-    elapsed = end - start
-    print('\n\nHealth Check Script ended at: ' + str(end) + '\n\n')
-    print('Time Elapsed: ' + str(elapsed) + '\n\n')
+        print('\n\nHealth Check Script ended at: ', datetime.datetime.now(), '\n\n')
 
 
 class HealthCheck(object):
