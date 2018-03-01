@@ -21,7 +21,7 @@ Revisions:
 
 '''
 import argparse
-import urllib3
+import requests
 import logging
 import inspect
 from Acos import Acos
@@ -55,7 +55,7 @@ except Exception as e:
 
 
 def main():
-    urllib3.disable_warnings()
+    requests.packages.urllib3.disable_warnings()
 
     # set the default logging format
     logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
