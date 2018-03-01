@@ -60,7 +60,8 @@ def main():
     # set the default logging format
     logging.basicConfig(format="%(name)s: %(levelname)s: %(message)s")
 
-    print('\n\nHealth Check script started at: ', datetime.datetime.now(),'\n\n')
+    start = datetime.datetime.now()
+    print('\n\nHealth Check script started at: ' + str(start) + '\n\n')
 
     for device in devices:
         device = Acos(device, username, password, verbose)
@@ -96,7 +97,10 @@ def main():
 
 
         device.auth_logoff(token)
-        print('\n\nHealth Check Script ended at: ', datetime.datetime.now(), '\n\n')
+    end = datetime.datetime.now()
+    elapsed = end - start
+    print('\n\nHealth Check Script ended at: ' + str(end) + '\n\n')
+    print('Time Elapsed: ' + str(elapsed) + '\n\n')
 
 
 class HealthCheck(object):
